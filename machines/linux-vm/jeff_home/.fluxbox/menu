@@ -1,0 +1,13 @@
+[begin] (fluxbox)
+[exec] (Terminator) {/usr/bin/terminator} </usr/share/pixmaps/terminator.png>
+[exec] (Chrome) {/usr/bin/google-chrome} </usr/share/icons/hicolor/16x16/apps/google-chrome.png>
+[exec] (Xfe) {/usr/bin/xfe} </usr/share/pixmaps/xfe.xpm>
+[exec] (Shutdown) {/home/jeff/bin/shutdown} <>
+[submenu] (Workspaces)
+[exec] (Main) {/home/jeff/bin/start-main} <>
+[exec] (Debesys) {/home/jeff/bin/start-debesys} <>
+[exec] (Haskell) {/home/jeff/bin/start-haskell} <>
+[end]
+[separator]
+[include] (/etc/X11/fluxbox/fluxbox-menu)
+[end]
