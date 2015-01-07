@@ -1,0 +1,3 @@
+sudo cp /etc/debesys/lbm_config_lo.xml /etc/debesys/lbm.conf
+sudo ifconfig lo multicast
+./run python risk/ttus_lbm_pub/ttus_lbm_pub --stdout  -v --config risk/ttus_lbm_pub/ttus_lbm_pub.conf --disable-zookeeper 

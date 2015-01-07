@@ -1,0 +1,9 @@
+hash=$1
+./run deploy/chef/scripts/request_build.py -r $hash
+./run python deploy/chef/scripts/bump_cookbook_version.py -r 6eab6136bf155a65 -c cb1 cb2 ... cbN
+git add -vu deploy/chef/cookbooks deploy/chef/environments
+git commit -q -m "chef: bump cookbook versions"
+git pull origin develop
+git push origin develop
+./run ./ttknife cookbook upload cme
+

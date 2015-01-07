@@ -1,0 +1,2 @@
+#!/bin/bash
+run python t_trader/tt/ttrader/script_trader.py -c ~/ttrader.conf $1
