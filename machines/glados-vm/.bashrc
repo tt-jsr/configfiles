@@ -114,3 +114,12 @@ unset LC_ALL
 export JENKINS_USER=jeff.richards@tradingtechnologies.com
 export JENKINS_TOKEN=a8782d848f0a9de570e6de3b2da6218e
 export EDITOR=vim
+
+export INTAD_USER=jrichards
+
+# for the vcloud comand
+export VCD_ORG=Dev_General
+
+#bump cookbooks to use ldap for authentication
+export BCV_ENABLE_LDAP=1
+

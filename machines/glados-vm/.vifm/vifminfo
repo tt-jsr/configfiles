@@ -1,0 +1,206 @@
+# You can edit this file by hand, but it's recommended not to do that.
+
+# Bookmarks:
+'H
+	/home/jeff/
+	../
+1420671600
+'a
+	/home/jeff/projects/debesys/orders
+	eurex/
+1420724663
+'b
+	/home/jeff/bin/
+	../
+1420724418
+'h
+	/home/jeff/
+	../
+1420724418
+'z
+	/home/jeff/.vifm
+	../
+1420671600
+
+# TUI:
+al
+q0
+v2
+ov
+m-1
+l2
+r2
+
+# Left window history (oldest to newest):
+d/home/jeff/projects/debesys
+	orders/
+31
+d/home/jeff/projects/debesys/orders
+	cme/
+5
+d/home/jeff/projects/debesys/orders/cme
+	cron/
+2
+d/home/jeff/projects/debesys/orders/cme/cron
+	../
+0
+d/home/jeff/projects/debesys/orders
+	../
+0
+d/home/jeff/projects/debesys
+	../
+0
+d/home/jeff/projects
+	../
+0
+d/home/jeff
+	projects/
+6
+d/home/jeff/projects/debesys
+	../
+0
+d/home/jeff
+	.vim/
+28
+d/home/jeff/.vim
+	doc/
+5
+d/home/jeff
+	vifm-0.7.7.tar.bz2
+21
+d/home/jeff/projects/debesys/orders/cf/include/cf
+	cf.h
+21
+d/home/jeff/projects/debesys/orders/cf/include
+	cf/
+1
+d/home/jeff/projects/debesys/orders/cf/include/cf
+	execution_report.h
+38
+d/home/jeff/projects/debesys/orders/cf/include
+	cf/
+1
+d/home/jeff/projects/debesys/orders/cf
+	include/
+2
+d/home/jeff/projects/debesys/orders
+	../
+0
+d/home/jeff/projects/debesys/deploy/chef/cookbooks/order_connector
+	recipes/
+2
+d/home/jeff/projects/debesys/deploy/chef/cookbooks/order_connector/recipes
+	default.rb
+1
+d/home/jeff/projects/debesys/deploy/chef/cookbooks/order_connector
+	definitions/
+1
+d/home/jeff/projects/debesys/deploy/chef/cookbooks/order_connector/definitions
+	order_connector_app.rb
+1
+d/home/jeff/projects/debesys/deploy/chef/cookbooks/order_connector
+	metadata.rb
+7
+d/home/jeff/projects/debesys/deploy/chef/cookbooks
+	../
+0
+d/home/jeff/projects/debesys/ttex/server
+	../
+0
+d/home/jeff/projects/debesys/ttex
+	../
+0
+d/home/jeff/projects/debesys
+	../
+0
+d
+
+# Right window history (oldest to newest):
+D/home/jeff/projects/debesys
+	../
+0
+D/home/jeff/projects
+	../
+0
+D/home/jeff
+	projects/
+6
+D/home/jeff/projects
+	../
+0
+D/home/jeff
+	etc/
+5
+D/home/jeff/etc
+	../
+0
+D/home/jeff
+	vps/
+7
+D/home/jeff/vps
+	README.rtf
+4
+D/home/jeff
+	projects/
+6
+D/home/jeff/projects
+	configfiles/
+2
+D/home/jeff/projects/configfiles
+	machines/
+1
+D/home/jeff/projects/configfiles/machines
+	glados-vm/
+1
+D/home/jeff/projects/configfiles/machines/glados-vm
+	bin/
+1
+D
+
+# Command line history (oldest to newest):
+:ga
+:e projects/debesys/
+:cd projects/debesys/
+:cd
+:lsview
+:cd projects/debesys/orders/cf/include/cf
+:qa
+:less
+:!less
+:!pwd
+:cd ..
+:cd ~/projects/debesys/ttex/server/
+:filter *.cpp
+:filer .*\.cpp
+:filter .*\.cpp
+:filer
+:filter .*
+:filer *
+:q
+
+# Search history (oldest to newest):
+/order
+
+# Prompt history (oldest to newest):
+
+# Local filter history (oldest to newest):
+
+# Registers:
+""/home/jeff/.vifm/Trash/000_README.md
+
+# Directory stack (oldest to newest):
+
+# Trash content:
+t/home/jeff/.vifm/Trash/000_README.md
+	/home/jeff/README.md
+
+# State:
+f
+i1
+[.0
+[F
+F
+I1
+].0
+]F
+s0
