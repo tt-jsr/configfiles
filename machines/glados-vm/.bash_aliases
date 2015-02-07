@@ -2,6 +2,8 @@
 alias ll='ls -lF'
 alias la='ls -AF'
 alias l='ls -CF'
+alias ssh='ssh -o GSSAPIAuthentication=no'
+alias cssh='chef-ssh'
 
 #debesys
 alias Make='make -rR -j${CPU} --quiet show_progress=1 config=debug '
@@ -91,3 +93,47 @@ function delete-branch {
         break;
     done
 }
+
+function chef-ssh {
+    if [ -z "$1" -o -z "$2" ]
+    then 
+        echo "Usage: chef-ssh env recipe"
+        echo "Environments: dev, stage, uat, prod, sqe, devsim, prodsim"
+        echo "              sqe, devsim, prodsim"
+        exit 1
+    fi
+
+    case $1 in
+    dev)
+        env='int-dev-cert'
+        ;;
+    stage)
+        env='int-stage-cert'
+        ;;
+    devsim)
+        env='int-dev-sim'
+        ;;
+    sqe)
+        env='int-sqe-cert'
+        ;;
+    uat)
+        env='ext-uat-cert'
+        ;;
+    prod)
+        env='ext-prod-live'
+        ;;
+    prodsim)
+        env='ext-prod-sim'
+        ;;
+    esac
+
+    oc=$2
+    ips=`./run ./ttknife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
+
+    select selection in $ips
+    do
+        ssh root@$selection
+        exit
+    done
+}
+
