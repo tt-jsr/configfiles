@@ -2,6 +2,8 @@
 alias ll='ls -lF'
 alias la='ls -AF'
 alias l='ls -CF'
+alias ssh='ssh -o GSSAPIAuthentication=no'
+alias cssh='chef-ssh'
 
 #debesys
 alias Make='make -rR -j${CPU} --quiet show_progress=1 config=debug '
@@ -34,6 +36,7 @@ alias ci='git commit'
 alias pull='git-pull'
 alias push='git-push'
 alias delete='delete-branch'
+alias branches='git branch'
 
 function git-pull {
     if [ -z "$1" ]
@@ -61,11 +64,12 @@ function git-checkout {
     then
         branch=$1
     else
+        echo
         PS3="Branch: "
         branches=`git for-each-ref --format='%(refname:short)' refs/heads`
         select b in $branches;
         do
-            branch=b
+            branch=$b
             break;
         done
     fi
@@ -79,9 +83,9 @@ function delete-branch {
     branches=`git for-each-ref --format='%(refname:short)' refs/heads`
     select branch in $branches;
     do
-        echo -n "Delete branch $branch (y/n)? "
+        echo -n "Delete $branch (y/n)? "
         read yesno
-        if ["$yesno" == 'y' ]
+        if [ "$yesno" = 'y' ]
         then
             git branch -d $branch
             git push origin :$branch
@@ -89,3 +93,47 @@ function delete-branch {
         break;
     done
 }
+
+function chef-ssh {
+    if [ -z "$1" -o -z "$2" ]
+    then 
+        echo "Usage: chef-ssh env recipe"
+        echo "Environments: dev, stage, uat, prod, sqe, devsim, prodsim"
+        echo "              sqe, devsim, prodsim"
+        exit 1
+    fi
+
+    case $1 in
+    dev)
+        env='int-dev-cert'
+        ;;
+    stage)
+        env='int-stage-cert'
+        ;;
+    devsim)
+        env='int-dev-sim'
+        ;;
+    sqe)
+        env='int-sqe-cert'
+        ;;
+    uat)
+        env='ext-uat-cert'
+        ;;
+    prod)
+        env='ext-prod-live'
+        ;;
+    prodsim)
+        env='ext-prod-sim'
+        ;;
+    esac
+
+    oc=$2
+    ips=`./run ./ttknife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
+
+    select selection in $ips
+    do
+        ssh root@$selection
+        exit
+    done
+}
+
