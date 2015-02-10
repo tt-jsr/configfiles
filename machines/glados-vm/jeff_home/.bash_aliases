@@ -3,7 +3,7 @@ alias ll='ls -lF'
 alias la='ls -AF'
 alias l='ls -CF'
 alias ssh='ssh -o GSSAPIAuthentication=no'
-alias cssh='chef-ssh'
+alias cssh='chef_ssh'
 
 #debesys
 alias Make='make -rR -j${CPU} --quiet show_progress=1 config=debug '
@@ -94,7 +94,7 @@ function delete-branch {
     done
 }
 
-function chef-ssh {
+function chef_ssh {
     if [ -z "$1" -o -z "$2" ]
     then 
         echo "Usage: chef-ssh env recipe"
@@ -133,7 +133,7 @@ function chef-ssh {
     select selection in $ips
     do
         ssh root@$selection
-        exit
+        break
     done
 }
 
