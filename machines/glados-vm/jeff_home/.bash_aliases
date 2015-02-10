@@ -130,6 +130,7 @@ function chef_ssh {
     oc=$2
     ips=`./run ./ttknife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
 
+    PS3="Machine: "
     select selection in $ips
     do
         ssh root@$selection
