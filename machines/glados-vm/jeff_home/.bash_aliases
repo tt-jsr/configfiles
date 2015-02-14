@@ -31,30 +31,17 @@ alias cddeb='cd ~/projects/debesys'
 
 #git
 alias status='git stash list;git status'
-alias co='git-checkout'
+alias co='git checkout'
 alias ci='git commit'
-alias pull='git-pull'
-alias push='git-push'
+alias pull='git pull origin'
+alias push='git push origin'
 alias delete='delete-branch'
 alias branches='git branch'
-
-function git-pull {
-    if [ -z "$1" ]
-    then
-        echo "Usage: git-pull repo"
-        return
-    fi
-    git pull origin $*
-}
-
-function git-push {
-    if [ -z "$1" ]
-    then
-        echo "Usage: git-push repo"
-        return
-    fi
-    git push origin $*
-}
+alias gsu='git submodule update'
+alias gfo='git fetch origin'
+alias gss='git stash save'
+alias gsp='git stash pop'
+alias gsl='git stash list'
 
 
 function git-checkout {
@@ -98,10 +85,12 @@ function chef_ssh {
     if [ -z "$1" -o -z "$2" ]
     then 
         echo "Usage: chef-ssh env recipe"
-        echo "Environments: dev, stage, uat, prod, sqe, devsim, prodsim"
-        echo "              sqe, devsim, prodsim"
-        exit 1
+        echo "Environments: dev, stage, sqe, devsim"
+        echo "              uat, prod, prodsim"
+        return
     fi
+
+    knife=~/.chef/knife.rb
 
     case $1 in
     dev)
@@ -118,17 +107,20 @@ function chef_ssh {
         ;;
     uat)
         env='ext-uat-cert'
+        knife=~/.chef/knife.external.rb
         ;;
     prod)
         env='ext-prod-live'
+        knife=~/.chef/knife.external.rb
         ;;
     prodsim)
         env='ext-prod-sim'
+        knife=~/.chef/knife.external.rb
         ;;
     esac
 
     oc=$2
-    ips=`./run ./ttknife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
+    ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
 
     PS3="Machine: "
     select selection in $ips
