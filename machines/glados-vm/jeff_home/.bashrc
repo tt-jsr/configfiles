@@ -60,8 +60,17 @@ function git_branch {
     git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
 }
 
+#Can't seem to get these variables to work Argg!!
+LIGHTGREEN="\[\033[1;32m"
+LIGHTRED="\[\033[1;31m\]"
+YELLOW="\[\033[1;33m\]"
+BLUE="\[\033[1;34m\]"
+WHITE="\[\033[0;37m\]"
+RESET="\[\033[0;00m\]"
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]$(git_branch)\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[1;33m\]$(git_branch)\[\033[0;00m\]\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}${LIGHTGREEN}\u@\h${RESET}:${BLUE}\w${RESET}$(git_branch)\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(git_branch)\$ '
 fi
