@@ -43,7 +43,7 @@ esac
 # uncomment for a colored prompt, if the terminal has the capability; turned
 # off by default to not distract the user: the focus in a terminal window
 # should be on the output of commands, not on the prompt
-#force_color_prompt=yes
+force_color_prompt=yes
 
 if [ -n "$force_color_prompt" ]; then
     if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
@@ -56,17 +56,30 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
+function git_branch {
+    git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
+#Can't seem to get these variables to work Argg!!
+LIGHTGREEN="\[\033[1;32m"
+LIGHTRED="\[\033[1;31m\]"
+YELLOW="\[\033[1;33m\]"
+BLUE="\[\033[1;34m\]"
+WHITE="\[\033[0;37m\]"
+RESET="\[\033[0;00m\]"
+
 if [ "$color_prompt" = yes ]; then
-    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[1;33m\]$(git_branch)\[\033[0;00m\]\$ '
+    #PS1='${debian_chroot:+($debian_chroot)}${LIGHTGREEN}\u@\h${RESET}:${BLUE}\w${RESET}$(git_branch)\$ '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(git_branch)\$ '
 fi
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
 case "$TERM" in
 xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w$(git_branch)\a\]$PS1"
     ;;
 *)
     ;;
@@ -86,6 +99,7 @@ fi
 
 CPU=`nproc`
 
+# some more ls aliases
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
@@ -108,5 +122,17 @@ fi
 
 set -o vi
 export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
+unset LC_ALL
 
 export PATH=~/projects/cool/cs143/cool/bin:$PATH
+export JENKINS_USER=jeff.richards@tradingtechnologies.com
+export JENKINS_TOKEN=a8782d848f0a9de570e6de3b2da6218e
+export EDITOR=vim
+
+export INTAD_USER=jrichards
+
+# for the vcloud comand
+export VCD_ORG=Dev_General
+
+#bump cookbooks to use ldap for authentication
+export BCV_ENABLE_LDAP=1

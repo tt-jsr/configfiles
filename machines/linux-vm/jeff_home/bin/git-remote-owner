@@ -1,0 +1,80 @@
+#!/usr/bin/python
+import subprocess
+import shlex
+
+#list owners of remote branches
+
+def exec_command(cmdline):
+    """
+    Execute the given command line, captures and returns the response as a string
+    """
+    args = shlex.split(cmdline)
+    return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+
+def exec_command_as_array(cmdline):
+    """
+    Execute the given command line, captures and returns the response as an array of lines
+    """
+    args = shlex.split(cmdline)
+    r = subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+    r = r.strip()
+    r = r.split('\n')
+    rtn = []
+    for i in r:
+        rtn.append(i.strip())
+    return rtn
+
+def list_remote_branches():
+    """
+    Returns an array of remote branch names
+    """
+    return exec_command_as_array("git branch -r")
+
+def get_last_commit_info(branches):
+    """
+    Returns information for the last commit for each branch
+    """
+    arr=[]
+    for branch_name in branches:
+        info = exec_command('git log -1 --format="%an|%ar" {0}'.format(branch_name))
+        arr.append("{0}|{1}".format(branch_name, info.strip()))
+
+    return arr
+
+def output_infos(infos):
+    authors = {}
+    branch_name_idx = 0
+    author_idx = 1
+    lastcommit_idx = 2
+
+    f = open("remote-repo.txt", "w")
+    for info in infos:
+        arr = info.split('|')
+        if len(arr) >= 3:
+            line = "Branch: {0},   lastcommit: {1}".format(arr[branch_name_idx], arr[lastcommit_idx])
+            if authors.has_key(arr[author_idx]):
+                authors[arr[author_idx]].append(line)
+            else:
+                authors[arr[author_idx]] = [line]
+
+    for k in authors.keys():
+        f.write("{0}\n".format(k))
+        for i in authors[k]:
+            f.write("    {0}\n".format(i))
+        f.write("\n")
+
+    print "remote-repo.txt written"
+    
+print "This will run a report of all remote branches and the date and author of the last commit"
+print "Continuing will execute a 'get remote prune origin' command"
+ans = raw_input("Continue (y/n): ")
+if ans == 'y':    
+    exec_command("git fetch origin")
+    exec_command("git remote prune origin") 
+    branches = list_remote_branches()
+    infos = get_last_commit_info(branches)
+    output_infos(infos)
+else:
+    print "Aborted"
+
+
