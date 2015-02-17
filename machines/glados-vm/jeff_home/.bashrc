@@ -61,11 +61,9 @@ function git_branch {
 }
 
 function git_repo_name {
-    if [ `git rev-parse --is-inside-work-tree` == "true" ] 
+    if [ "`git rev-parse --is-inside-work-tree 2> /dev/null`" == "true" ] 
     then
-        basename `git rev-parse --show-toplevel`
-    else
-        echo ""
+        echo "[$(basename $(git rev-parse --show-toplevel))]"
     fi
 }
 
@@ -78,7 +76,7 @@ WHITE="\[\033[0;37m\]"
 RESET="\[\033[0;00m\]"
 
 if [ "$color_prompt" = yes ]; then
-    PS1='\n${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[1;33m\]\n[$(git_repo_name)]$(git_branch)\[\033[0;00m\]\$ '
+    PS1='\n${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[1;33m\]\n$(git_repo_name)$(git_branch)\[\033[0;00m\]\$ '
     #PS1='${debian_chroot:+($debian_chroot)}${LIGHTGREEN}\u@\h${RESET}:${BLUE}\w${RESET}$(git_branch)\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w$(git_branch)\$ '
