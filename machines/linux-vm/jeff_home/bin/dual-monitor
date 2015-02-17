@@ -1,0 +1,3 @@
+#!/bin/bash
+xrandr --output VBOX1 --right-of VBOX0
+
