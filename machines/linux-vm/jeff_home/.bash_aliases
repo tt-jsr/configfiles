@@ -31,7 +31,7 @@ alias cddeb='cd ~/projects/debesys'
 
 #git
 alias status='git stash list;git status'
-alias co='git checkout'
+alias co='git-checkout'
 alias ci='git commit'
 alias pull='git pull origin'
 alias push='git push origin'
@@ -49,7 +49,23 @@ function git-checkout {
     git remote prune origin
     if [ -n "$1" ]
     then
-        branch=$1
+        case $1 in
+        master) 
+            branch='master'
+            ;;
+        uat)
+            branch='uat/current'
+            ;;
+        stage)
+            branch='release/current'
+            ;;
+        dev)
+            branch='develop'
+            ;;
+        *)
+            branch=$1
+            ;;
+        esac
     else
         echo
         PS3="Branch: "
@@ -61,6 +77,7 @@ function git-checkout {
         done
     fi
     git checkout $branch
+    echo "git submodule update"
     git submodule update
     git stash list
 }
