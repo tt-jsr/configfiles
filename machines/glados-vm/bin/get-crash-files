@@ -10,7 +10,7 @@ EXCHANGE=$1
 DIR=$2
 TARFILE=$DIR.tgz
 COREFILE=$(echo $CRASHID | sed -e 's/_/:/g')/coredump
-if [ ! -d "$DIR" ]
+if [ ! -d "/tmp/$DIR" ]
 then
     sudo mount -t cifs //172.17.250.39/Share -o username=jrichards /mnt/crashes
     mkdir /tmp/$DIR

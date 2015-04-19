@@ -4,6 +4,7 @@ alias la='ls -AF'
 alias l='ls -CF'
 alias ssh='ssh -o GSSAPIAuthentication=no'
 alias cssh='chef_ssh'
+alias cscp='chef-scp'
 
 #debesys
 alias Make='make -rR -j${CPU} --quiet show_progress=1 config=debug '
@@ -142,8 +143,62 @@ function chef_ssh {
     PS3="Machine: "
     select selection in $ips
     do
-        ssh root@$selection
+        if [ $selection = "10.192.0.40" ]
+        then
+            echo -n "intad name: "
+            read username
+            echo -n "intad password: "
+            read -s password
+            echo
+        else
+            username=root
+            password=Tt12345678
+        fi
+        sshpass -p $password ssh $username@$selection
         break
     done
 }
 
+
+function chef-list {
+    if [ -z "$1" -o -z "$2" ]
+    then 
+        echo "Usage: chef-scp env recipe cmd"
+        echo "Environments: dev, stage, sqe, devsim"
+        echo "              uat, prod, prodsim"
+        return
+    fi
+
+    knife=~/.chef/knife.rb
+
+    case $1 in
+    dev)
+        env='int-dev-cert'
+        ;;
+    stage)
+        env='int-stage-cert'
+        ;;
+    devsim)
+        env='int-dev-sim'
+        ;;
+    sqe)
+        env='int-sqe-cert'
+        ;;
+    uat)
+        env='ext-uat-cert'
+        knife=~/.chef/knife.external.rb
+        ;;
+    prod)
+        env='ext-prod-live'
+        knife=~/.chef/knife.external.rb
+        ;;
+    prodsim)
+        env='ext-prod-sim'
+        knife=~/.chef/knife.external.rb
+        ;;
+    esac
+
+    oc=$2
+    ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
+    echo $ips
+}
