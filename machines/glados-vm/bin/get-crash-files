@@ -2,24 +2,43 @@
 if [ -z "$1" -o -z "$2" ]
 then
    echo "usage: get-crashfiles <exchange> <directory>"
+   echo "       <directory> is the directory in /tmp the"
+   echo "       email said to put the files in. Do not include"
+   echo "       the /tmp"
    exit 1
 fi
 
 CRASHID=$(echo $2 | sed -e 's/\(.*\)_.*_crash_files/\1/')
 EXCHANGE=$1
+case $EXCHANGE in
+"eex_derivative")
+    OPT_DIR=$EXCHANGE
+    BINARY="eurex"
+    ;;
+"eex_derivative_otc")
+    OPT_DIR=$EXCHANGE
+    BINARY="eurex"
+    ;;
+*)
+    OPT_DIR=$EXCHANGE
+    BINARY=$EXCHANGE
+    ;;
+esac
+
 DIR=$2
-TARFILE=$DIR.tgz
+TARFILE=$DIR.tar.gz
 COREFILE=$(echo $CRASHID | sed -e 's/_/:/g')/coredump
 if [ ! -d "/tmp/$DIR" ]
 then
+    echo "Enter intad passord for mount"
     sudo mount -t cifs //172.17.250.39/Share -o username=jrichards /mnt/crashes
     mkdir /tmp/$DIR
     echo "Copying files"
-    cp /mnt/crashes/Debesys_CoreDumps/$EXCHANGE/$DIR.tgz /tmp/$DIR
+    cp /mnt/crashes/Debesys_CoreDumps/$BINARY/$TARFILE /tmp/$DIR
     cd /tmp/$DIR
     echo "Extracting tar"
-    tar xzf $DIR.tgz
+    tar xzf $TARFILE
 fi
 
-gdb -ex "set solib-search-path /tmp/$DIR" -ex "set solib-absolute-prefix /tmp/$DIR" -ex "file /tmp/$DIR/opt/debesys/$EXCHANGE/bin/$EXCHANGE" -ex "core-file /tmp/$DIR/var/spool/abrt/$COREFILE"
+gdb -ex "set solib-search-path /tmp/$DIR" -ex "set solib-absolute-prefix /tmp/$DIR" -ex "file /tmp/$DIR/opt/debesys/$OPT_DIR/bin/$BINARY" -ex "core-file /tmp/$DIR/var/spool/abrt/$COREFILE"
 
