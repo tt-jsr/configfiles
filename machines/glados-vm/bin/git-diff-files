@@ -1,79 +1,31 @@
-#!/usr/bin/python
+#!/bin/bash
 
-import os
-import subprocess
-import sys
-from sh import git
-from sh import ls
+if [[ -z $1 ]]
+then
+    echo "Need branch arg"
+    exit
+fi
 
-gfo = git.bake("fetch", "origin")
-difftool = True
-path = None
+DIR=""
 
-def get_file_list(lhs, rhs):
-    ret = []
-    if path != None:
-        output = git("diff", "--name-only", lhs, rhs, "--", path, _tty_out=False)
-    else:
-        output = git("diff", "--name-only", lhs, rhs, _tty_out=False)
-    for f in output:
-        ret.append(f.strip())
-    return ret;
+if [[ ! -z $2 ]]
+then
+   DIR=$2
+fi
 
-def menu(files):
-    idx = 0
-    for f in files:
-        print "{0} {1}".format(idx, f)
-        idx = idx + 1
-    return raw_input("Select: ")
+if [[ $DIR ]]
+then
+    files=`git diff --name-only $1 -- $DIR`
+    select file in $files;
+    do 
+        git difftool -y $1 -- $file;
+    done
+else
+    files=`git diff --name-only $1`
+    select file in $files;
+    do 
+        git difftool -y $1 -- $file;
+    done
+fi
 
-def usage():
-    print "git-pull-request [-d] commit commit"
-
-def run_diff(lhs, rhs):
-    print gfo()
-    files = get_file_list(lhs, rhs)
-    while True:
-        idx = menu(files)
-        if idx == "":
-            return;
-        if idx == 'q':
-            return
-        idx = int(idx)
-        if idx >= 0 and idx < len(files):
-            if difftool:
-                git("difftool", "-y", lhs, rhs, "--", files[idx])
-            else:
-                print git("diff", lhs, rhs, "--", files[idx], _tty_out=False)
-                raw_input()
-
-def main(args):
-    global difftool
-    global path
-    dashdash = False
-    lhs = None
-    rhs = None
-
-    idx = 0
-    while idx < len(args):
-        if args[idx] == "-d":
-            difftool = False
-        elif args[idx] == "--":
-            dashdash = True
-        elif dashdash == True:
-            path = args[idx]
-        elif lhs == None:
-            lhs = args[idx]
-        elif rhs == None:
-            rhs = args[idx]
-        idx = idx + 1
-
-    if lhs == None or rhs == None:
-        usage()
-        return
-
-    run_diff(lhs, rhs)
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
 
