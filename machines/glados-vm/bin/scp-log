@@ -27,6 +27,9 @@ function select-machine {
         env='ext-prod-sim'
         knife=~/.chef/knife.external.rb
         ;;
+    *)
+        env=$1
+        ;;
     esac
 
     oc=$2
@@ -101,7 +104,7 @@ else
 fi
 select-machine $env $recipe
 
-dest=/var/log/debesys/${env}_${recipe}_${src_ip}
+dest=/var/log/debesys/${env}/${recipe}/${src_ip}
 mkdir -p $dest
 select-files 
 

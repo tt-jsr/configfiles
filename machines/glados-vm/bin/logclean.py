@@ -29,6 +29,12 @@ def Errors(line, pat):
         ]
     return doAccept(line, accept, None)
 
+def CassandraMessageStore(line, pat):
+    accept = [
+        (find, "CassandraMessageStore")
+        ]
+    return doAccept(line, accept, None)
+
 def CONNECTIONS(line, pat):
     accept = [
         (find, "CLUSTER_MGR")           # Startup
@@ -65,6 +71,7 @@ def default_rule(line):
         ,(Errors, None)
         ,(CONNECTIONS, None)
         ,(Messages, None)
+        ,(CassandraMessageStore, None)
         ]
     return doAccept(line, accept, None)
 
@@ -102,6 +109,7 @@ def connections_rule(line):
         (CONNECTIONS, None)
         , (Startup, None)
         , (Errors, None)
+        ,(CassandraMessageStore, None)
         ]
     return doAccept(line, accept, None)
 
@@ -121,21 +129,47 @@ def startup_help():
 #############################################################################################
 maxLineLength = 2048
 rulelist = []
+startAtLine = None
+endAtLine = None
+startAtTime = None
+endAtTime=None
 
-def runRule(startAtLine, infile, outfile, rule):
+def shouldProcessLine(lineno, line):
+    if startAtLine != None:
+        if lineno < startAtLine:
+       	    return 0
+        if lineno < endAtLine:
+            return 1
+        return -1
+
+    if startAtTime != None:
+        dt = parse_timestamp(line)
+        if dt == None:
+            return 1
+        if dt < startAtTime:
+            return 0
+        if dt < endAtTime:
+            return 1
+        return -1
+    return 1
+
+def runRule(infile, outfile, rule):
     currentLine = 0
     outputline = 0
     for line in infile:
         currentLine = currentLine + 1
         if (currentLine % 10000) == 0:
             sys.stderr.write("{0}/{1}\r".format(currentLine, outputline))
-        if currentLine >= startAtLine:
+        ret = shouldProcessLine(currentLine, line)
+        if ret == 1:
             if rule(line):
                 outputline = outputline + 1
                 if len(line)>maxLineLength:
                     outfile.write("{0}: {1}...truncated\n".format(currentLine, line[:maxLineLength]))
                 else:
                     outfile.write("{0}: {1}".format(currentLine, line))
+        elif ret == -1:
+            return
 
 # Given a rule name, get the rule
 def getRuleFromName(name):
@@ -164,8 +198,7 @@ def getListOfRuleNames():
 
 
 def help():
-    #print "Usage: logclean [-r=<rulename>] [-l=startline] [-t=<time>] [-c=<tz>] [infile, --]"
-    print "Usage: logclean [-r=<rulename>] [-l=startline] [infile, --]"
+    print "Usage: logclean [-r=<rulename>] [-sl=startline] [-el=endLine] [-st=<start_time>] [-et=<end_time>] [infile, --]"
     print "The output file name will be based on the rule being processed"
     print
     print "If -- is specified as the input, stdin will be read and stdout will be written. Only"
@@ -175,11 +208,17 @@ def help():
     print "    can easily be added. See the source. If 'all' is used, then all rules will be processed."
     print "    -r may be specified multiple times."
     print
-    print "-l: Specify the line number to start processing from."
-    #print
-    #print "-t: Specify the time to start processing at"
-    #print "    The format of the time is the same as the log files"
-    #print
+    print "-sl: Specify the line number to start processing from."
+    print "-el: Specify the line number to end processing at."
+    print "     If not specified, end of file is used."
+    print
+    print "-st: Specify the time to start processing at"
+    print "    The format of the time is the same as the log files"
+    print
+    print "-et: Specify the time to end processing at"
+    print "    The format of the time is the same as the log files."
+    print "    If not specified, the end of file is used."
+    print
     #print "-c: Convert timestamp to the given timezone."
     #print "    Timezones are CST, CDT, EST, EDT, CEST, CEDT"
     print
@@ -198,9 +237,15 @@ def parse_timestamp(line):
     s = line[:26]
     dt = s.split(' ')
     if len(dt) >= 2:
-        date = dt[0].split('-');
-        time = dt[1].split(':');
-        return datetime.datetime(date[0], date[1], date[2], time[0], time[1], time[2])
+        date = dt[0].split('-')
+        if len(date) < 3:
+            return None
+        time = dt[1].split(':')
+        if len(time) < 3:
+            return None
+        secs = time[2].split('.')
+        return datetime.datetime(int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(secs[0]))
+    return None
 
 # Use string.find() to find a match in a line
 def find(line, pat):
@@ -235,7 +280,6 @@ if __name__ == "__main__":
     f_out = None
     inname = None
     outname = None
-    startAtLine = 1
     for arg in sys.argv[1:]:
         if arg == "--help":
             help()
@@ -246,8 +290,14 @@ if __name__ == "__main__":
                 rulelist = getListOfRuleNames()
             else:
                 rulelist.append(s)
-        elif arg[:2] == "-l":
-            startAtLine = int(arg[3:])
+        elif arg[:3] == "-sl":
+            startAtLine = int(arg[4:])
+        elif arg[:3] == "-el":
+            endAtLine = int(arg[4:])
+        elif arg[:3] == "-st":
+            startAtTime = parse_timestamp(arg[4:])
+        elif arg[:3] == "-et":
+            endAtTime = parse_timestamp(arg[4:])
         elif f_in == None:
             inname = arg
             if inname == '--':
@@ -261,6 +311,16 @@ if __name__ == "__main__":
             outname = arg
             f_out = open(arg, "w")
 
+    if startAtLine == None and endAtLine != None:
+        startAtLine = 1
+    if startAtLine != None and endAtLine == None:
+        endAtLine = 1000000000
+
+    if startAtTime == None and endAtLine != None:
+        startAtTime = datetime.MINYEAR
+    if startAtTime != None and endAtTime == None:
+        endAtTime = datetime.MAXYEAR
+
     if len(rulelist) == 0:
         rulelist.append("default")
 
@@ -273,7 +333,7 @@ if __name__ == "__main__":
         if rule == None:
             sys.stderror.write(ruleName + " does not exist as a rule\n")
         else:
-            runRule(startAtLine, f_in, f_out, rule)
+            runRule(f_in, f_out, rule)
     else:
         for ruleName in rulelist:
             rule = getRuleFromName(ruleName)
@@ -283,5 +343,5 @@ if __name__ == "__main__":
                 outname = inname + "_" + ruleName
                 f_out = open(outname, "w")
                 f_in.seek(0)
-                runRule(startAtLine, f_in, f_out, rule)
+                runRule(f_in, f_out, rule)
                 sys.stderr.write(outname + " written\n")

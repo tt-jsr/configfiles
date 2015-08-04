@@ -1,0 +1,3 @@
+#!/bin/bash
+scp /home/jeff/bin/stuff.tar jrichards@${1}:stuff.tar
+ssh jrichards@${1}

@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+# format a log line containing a protobuf message
+# This is intended to be used from within vim
+# :.!pfmt 
+# Will format the current line.
+
+import sys
+import time
+
+indent_count = 0
+ungetchar = None
+
+def getc():
+    global ungetchar
+    if ungetchar != None:
+        c = ungetchar
+        ungetchar = None
+        return c
+    return sys.stdin.read(1)
+
+def ungetc(c):
+    global ungetchar
+    ungetchar = c
+
+def indent():
+    sys.stdout.write(" " * indent_count)
+
+def output(s):
+    for c in s:
+        sys.stdout.write(c)
+        if c == '\n':
+            indent();
+def inc():
+   global indent_count
+   indent_count = indent_count + 4
+
+def dec():
+   global indent_count
+   indent_count = indent_count - 4
+   if indent_count < 0:
+       indent_count = 0
+
+def skipWhile(list):
+    while True:
+        try:
+            c = getc()
+        except:
+            exit()
+        if c == "":
+            return None
+
+        if c in list:
+            pass
+        else:
+            ungetc(c)
+            return
+
+def collectUntil(list):
+    s = ""
+    while True:
+        try:
+            c = getc()
+        except:
+            exit()
+        if c == "":
+            return s
+
+        if c in list:
+            ungetc(c)
+            return s
+        if c == '"':
+            s += '"'
+            s += collectUntil('"')
+            s += getc()
+        else:
+            s += c
+
+def collectWord():
+    s = ""
+    while True:
+        skipWhile(' ')
+        return collectUntil(" ")
+
+
+def main():
+    words = []
+    for i in range(1,50): # move pass the timestamp an other stuff
+        output(getc())
+    inc()
+    while True:
+        w = collectWord()
+        if w == "":
+            break
+        words.append(w)
+
+    for i in range(0, len(words)):
+        w = words[i]
+        if i < (len(words)-1) and words[i+1] == '{':
+            output('\n')
+        if w == '{':
+            output("\n{")
+            inc()
+            output('\n')
+        elif w == '}':
+            dec()
+            output("\n}\n")
+        elif w[-1] == ':':
+            output("\n")
+            output(w)
+        else:
+            fields = ["client_time_sent:", "order_received_oc:", "time_sent:", "transact_time:", "received_from_exchange:", "time_sent_exchange:"]
+            if i > 0 and (words[i-1] in fields):
+                t = int(w)/1000000000
+                r = int(w) - (t*1000000000)
+                w = "{0}.{1} ({2})".format(time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(t)), r, w)
+            output(w)
+
+if __name__ == "__main__":
+    main()

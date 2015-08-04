@@ -228,6 +228,8 @@ map <leader>t6 :tabnext 6<cr>
 map <leader>t7 :tabnext 7<cr>
 map <leader>t8 :tabnext 8<cr>
 
+map <leader>b  :buffer 
+
 " Opens a new tab with the current buffer's path
 " Super useful when editing files in the same directory
 map <leader>te :tabedit <c-r>=expand("%:p:h")<cr>/
@@ -451,6 +453,45 @@ endfunction
 autocmd VimEnter * call VimStarted()
 
 "===========================================================
+" Find file in current directory and edit it.
+function! Find(...)
+    let path="."
+    if a:0==2
+        let path=a:2
+    endif
+    let l:list=system("find ".path. " -name '".a:1."' | grep -v .svn ")
+    let l:num=strlen(substitute(l:list, "[^\n]", "", "g"))
+    if l:num < 1
+        echo "'".a:1."' not found"
+        return
+    endif
+    if l:num == 1
+        exe "open " . substitute(l:list, "\n", "", "g")
+    else
+        let tmpfile = tempname()
+        exe "redir! > " . tmpfile
+        silent echon l:list
+        redir END
+        let old_efm = &efm
+        set efm=%f
+
+        if exists(":cgetfile")
+            execute "silent! cgetfile " . tmpfile
+        else
+            execute "silent! cfile " . tmpfile
+        endif
+
+        let &efm = old_efm
+
+        " Open the quickfix window below the current window
+        "     botright copen
+
+        call delete(tmpfile)
+    endif
+endfunction
+command! -nargs=* Find :call Find(<f-args>)
+
+"===========================================================
 function Myhelp()
     echo "<F1> :MyHelp"
     echo "<F2> File marks"
@@ -473,14 +514,14 @@ command -nargs=0 Myhelp :call Myhelp()
 
 "===========================================================
 "
-set wildchar=<TAB> wildmenu wildmode=full
+"set wildchar=<TAB> wildmenu wildmode=full
 
 "===========================================================
 nnoremap <F1> :Myhelp<CR>
 nnoremap <F2> :marks ABCDEFGHIJKLMNOPQRSTUVWXYZ<CR>
 "nnoremap <C-F2> :marks abcdefghijklmnopqrstuvwxyz<CR>
 "nnoremap <S-F2> :marks 0123456789[]<>`'^.(){}<CR>
-nnoremap <F3> :grep <cword> *<CR>
+nnoremap <F3> :grep <cword> %:h/*<CR>
 "nnoremap <F4> :tabnew<CR>
 nnoremap <F5> :BufExplorer<CR>
 nnoremap <F6> :!nautilus --no-desktop --browser .&<CR>
@@ -489,6 +530,15 @@ nnoremap <F8> :cnext<CR>
 nnoremap <F9> :NERDTree<CR>
 nnoremap <C-F9> :NERDTreeClose<CR>
 "nnoremap <F12> :Listtags<CR>
+
+"Use ; to get into ex
+nnoremap ; :
+vnoremap ; :
+
+"Use jf for an escape key in insert mode
+imap jf <Esc>
+
+"
 "
 " viki config
 "
@@ -497,11 +547,22 @@ nnoremap <C-F9> :NERDTreeClose<CR>
 "let g:vikiOpenUrlWith_ANY="silent! chromium %{FILE}
 "
 "==========================================================
+function Pfmt()
+    :.!pfmt
+endfunction
+command -nargs=0 Pfmt :call Pfmt()
+
+"==========================================================
 function Logcleanup()
     :1,$g/Core-5688/d
     :1,$g/THROTTLED MSG/d
     :1,$g/SyncInstrumentDownload/d
     :1,$g/^$/d
+    :1,$g/| darwin/d
+    :1,$g/| cumulus/d
+    :1,$g/| lbm_/d
+    :1,$g/| Zookeeper/d
+
 endfunction
 command -nargs=0 Logcleanup :call Logcleanup()
 

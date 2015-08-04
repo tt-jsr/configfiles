@@ -1,0 +1,38 @@
+
+if [ -z "$1" -o -z "$2" ]
+then 
+    echo "Usage: scp-get env recipe src_dir dst_dir"
+    echo "Usage: scp-put env recipe src_dir dst_dir"
+    echo "Environments: dev, stage, sqe, devsim"
+    echo "              uat, prod, prodsim"
+    exit
+fi
+env=$1
+recipe=$2
+src=$3
+dst=$4
+
+machines=`chef-list $env $recipe`
+
+PS3="Machine: "
+select selection in $machines
+do
+    if [ $selection = "10.192.0.40" ]
+    then
+        echo -n "intad name: "
+        read username
+        echo -n "intad password: "
+        read -s password
+        echo
+    else
+        username=root
+        password=Tt12345678
+    fi
+    if [[ $0 == "scp-get" ]
+    then
+        ssh $username@$selection:$src $dst
+    else
+        ssh &src $username@$selection:$dst
+    fi
+    break
+done

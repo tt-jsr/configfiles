@@ -19,6 +19,10 @@ case $EXCHANGE in
     OPT_DIR=$EXCHANGE
     BINARY="eurex"
     ;;
+"ice_l")
+    OPT_DIR=$EXCHANGE
+    BINARY="ice"
+    ;;
 *)
     OPT_DIR=$EXCHANGE
     BINARY=$EXCHANGE
