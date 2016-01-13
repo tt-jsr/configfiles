@@ -1,13 +1,15 @@
 
-alias ll='ls -lF'
+alias ll='ls -lhF'
 alias la='ls -AF'
 alias l='ls -CF'
 alias ssh='ssh -o GSSAPIAuthentication=no'
 alias cssh='chef_ssh'
+alias cftp='chef_ftp'
 alias cscp='chef-scp'
+alias hd='od -A x -c '
 
 #debesys
-alias Make='make -rR -j${CPU} --quiet show_progress=1 config=debug '
+alias Make='make -rR -j4 --quiet show_progress=1 config=debug '
 alias ttknife='./run ./ttknife'
 alias spy='./run python ttex/unittests/spy.py'
 alias ttrader='./run t_trader/tt/ttrader/t_trader.py -c ~/ttrader.conf'
@@ -18,17 +20,26 @@ alias req-build='./run deploy/chef/scripts/request_build.py'
 alias req-deploy='./run deploy/chef/scripts/request_deploy.py'
 alias bump='./run deploy/chef/scripts/bump_cookbook_version.py'
 
-#vim projects
-alias ettex='gvim -c ":Project ~/ttex.proj"'
-alias eachtung='gvim -c ":Project ~/achtung.proj"'
-alias ecppactor='gvim -c ":Project ~/cppactor.proj"'
-alias eoc='gvim -c ":Project ~/oc.proj"'
-alias ettrader='gvim -c ":Project ~/ttrader.proj"'
-alias epytrader='gvim -c ":Project ~/pytrader.proj"'
-
 #directories
 alias cdlog='cd /var/log/debesys'
 alias cddeb='cd ~/projects/debesys'
+alias eris='cd ~/projects/debesys/orders/eris/include/eris/'
+alias ice='cd ~/projects/debesys/orders/ice/include/ice/'
+alias es='cd ~/projects/debesys/orders/espeed/include/espeed/'
+alias cf='cd ~/projects/debesys/orders/cf/include/cf/'
+alias kcg='cd ~/projects/debesys/orders/kcg/include/kcg'
+alias ba='cd ~/projects/debesys/orders/bankalgo/include/bankalgo'
+alias cme='cd ~/projects/debesys/orders/cme/include/cme'
+alias deb='cd ~/projects/debesys'
+alias om='cd ~/projects/debesys/all_messages/source/tt/messaging/order'
+alias ttusm='cd ~/projects/debesys/all_messages/source/tt/messaging/ttus'
+alias cfe='cd ~/projects/debesys/orders/cfe/include/cfe'
+alias sfe='cd ~/projects/debesys/orders/sfe/include/sfe'
+alias eurex='cd ~/projects/debesys/orders/eurex/include/eurex'
+alias fixit='cd ~/projects/debesys/fixit/cpp/src/session'
+alias otc='cd ~/projects/debesys/orders/eurex_otc/include/eurex_otc'
+alias eotc='cd ~/projects/debesys/orders/eurex_otc/include/eurex_otc'
+alias nfx='cd ~/projects/debesys/orders/nfx/include/nfx'
 
 #git
 alias status='git stash list;git status'
@@ -37,13 +48,19 @@ alias ci='git commit'
 alias pull='git pull origin'
 alias push='git push origin'
 alias delete='delete-branch'
-alias branches='git branch'
 alias gsu='git submodule update'
 alias gfo='git fetch origin'
 alias gss='git stash save'
 alias gsp='git stash pop'
 alias gsl='git stash list'
+alias ebd='edit-branch-desc'
+alias gnb='git-new-branch'
 
+function ttlog {
+    cd /home/jeff/projects/debesys
+    ./run build/x86-64/release/bin/ttlog "$1"
+    cd -
+}
 
 function git-checkout {
     git fetch origin
@@ -94,9 +111,22 @@ function delete-branch {
         then
             git branch -d $branch
             git push origin :$branch
+            if [ -e /home/jeff/gitbranches/$branch ]
+            then
+                rm /home/jeff/gitbranches/$branch
+            fi
         fi
         break;
     done
+}
+
+function edit-branch-desc {
+    vim "/home/jeff/gitbranches/$1"
+}
+
+function git-new-branch {
+    git checkout -b $1
+    edit-branch-desc $1
 }
 
 function chef_ssh {
@@ -113,27 +143,38 @@ function chef_ssh {
     case $1 in
     dev)
         env='int-dev-cert'
+        cmd="ssh jrichards@"
         ;;
     stage)
         env='int-stage-cert'
+        cmd="ssh jrichards@"
         ;;
     devsim)
         env='int-dev-sim'
+        cmd="ssh jrichards@"
         ;;
     sqe)
         env='int-sqe-cert'
+        cmd="ssh jrichards@"
         ;;
     uat)
         env='ext-uat-cert'
         knife=~/.chef/knife.external.rb
+        cmd="ssh jrichards@"
         ;;
     prod)
         env='ext-prod-live'
         knife=~/.chef/knife.external.rb
+        cmd="ssh jrichards@"
         ;;
     prodsim)
         env='ext-prod-sim'
         knife=~/.chef/knife.external.rb
+        cmd="ssh jrichards@"
+        ;;
+    *)
+        env=$1
+        cmd="ssh jrichards@"
         ;;
     esac
 
@@ -143,27 +184,15 @@ function chef_ssh {
     PS3="Machine: "
     select selection in $ips
     do
-        if [ $selection = "10.192.0.40" ]
-        then
-            echo -n "intad name: "
-            read username
-            echo -n "intad password: "
-            read -s password
-            echo
-        else
-            username=root
-            password=Tt12345678
-        fi
-        sshpass -p $password ssh $username@$selection
+        ${cmd}$selection
         break
     done
 }
 
-
-function chef-list {
+function chef_ftp {
     if [ -z "$1" -o -z "$2" ]
     then 
-        echo "Usage: chef-scp env recipe cmd"
+        echo "Usage: chef-ftp env recipe"
         echo "Environments: dev, stage, sqe, devsim"
         echo "              uat, prod, prodsim"
         return
@@ -174,31 +203,55 @@ function chef-list {
     case $1 in
     dev)
         env='int-dev-cert'
+        cmd="sftp jrichards@"
         ;;
     stage)
         env='int-stage-cert'
+        cmd="sftp jrichards@"
         ;;
     devsim)
         env='int-dev-sim'
+        cmd="sftp jrichards@"
         ;;
     sqe)
         env='int-sqe-cert'
+        cmd="sftp jrichards@"
         ;;
     uat)
         env='ext-uat-cert'
         knife=~/.chef/knife.external.rb
+        cmd="sftp jrichards@"
         ;;
     prod)
         env='ext-prod-live'
         knife=~/.chef/knife.external.rb
+        cmd="sftp jrichards@"
         ;;
     prodsim)
         env='ext-prod-sim'
         knife=~/.chef/knife.external.rb
+        cmd="sftp jrichards@"
+        ;;
+    *)
+        env=$1
+        cmd="sftp jrichards@"
         ;;
     esac
 
     oc=$2
     ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
-    echo $ips
+
+    PS3="Machine: "
+    select selection in $ips
+    do
+        ${cmd}$selection
+        break
+    done
 }
+
+csview () 
+{ 
+    local file="$1";
+    cat "$file" | sed -e 's/,,/, ,/g' | column -s, -t | less -#5 -N -S
+}
+
