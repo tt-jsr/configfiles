@@ -1,0 +1,20 @@
+#!/bin/bash
+
+branches=$(git branch | sed -e s/\\*//g)
+
+for b in $branches; do
+    filename="/home/jeff/gitbranches/$b"
+    if [ -e $filename ]
+    then
+        if [[ $1 == "--all" ]]
+        then
+            firstline=$(cat $filename)
+        else
+            firstline=$(head -n 1 $filename)
+        fi
+        echo "$b $firstline"
+    else
+        echo $b
+    fi
+done
+

@@ -104,16 +104,16 @@ def main():
         elif w == '}':
             dec()
             output("\n}\n")
-        elif w[-1] == ':':
-            output("\n")
-            output(w)
         else:
-            fields = ["client_time_sent:", "order_received_oc:", "time_sent:", "transact_time:", "received_from_exchange:", "time_sent_exchange:"]
-            if i > 0 and (words[i-1] in fields):
-                t = int(w)/1000000000
-                r = int(w) - (t*1000000000)
-                w = "{0}.{1} ({2})".format(time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(t)), r, w)
+            parts = words[i].split('=')
+            if len(parts) == 2:
+                fields = ["client_time_sent", "order_received_oc", "time_sent", "transact_time", "received_from_exchange", "time_sent_exchange"]
+                if i > 0 and (parts[0] in fields):
+                    t = int(parts[1])/1000000000
+                    r = int(parts[1]) - (t*1000000000)
+                    w = "{0}={1}.{2} ({3})".format(parts[0], time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(t)), r, parts[1])
             output(w)
+            output('\n')
 
 if __name__ == "__main__":
     main()

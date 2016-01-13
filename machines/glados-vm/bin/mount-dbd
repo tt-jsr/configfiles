@@ -1,0 +1,1 @@
+sudo mount -t cifs //172.17.250.39/Share -o username=jrichards /mnt/dbd
