@@ -1,0 +1,9 @@
+[begin] (fluxbox)
+[exec] (Chrome) {google-chrome} </usr/share/pixmaps/chromium.xpm>
+[exec] (Terminator) {terminator} </usr/share/pixmaps/terminator.png>
+[exec] (X File Manager) {/usr/bin/xfe} </usr/share/pixmaps/xfe.xpm>
+[exec] (xpad) {/usr/bin/xpad} <xpad.xpm>
+[exec] (shutdown) {~/bin/shutdown} <>
+[separator]
+[include] (/etc/X11/fluxbox/fluxbox-menu)
+[end]
