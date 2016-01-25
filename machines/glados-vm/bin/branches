@@ -1,20 +1,45 @@
 #!/bin/bash
 
+green="\e[32m"
+cyan="\e[36m"
+red="\e[31m"
+default="\e[39m"
+
 branches=$(git branch | sed -e s/\\*//g)
+
+function color-out {
+    echo -en "$1$2${default}"
+}
 
 for b in $branches; do
     filename="/home/jeff/gitbranches/$b"
+    case $b in
+    "develop")
+        color-out $red $b
+        ;;
+    "release/current")
+        color-out $red $b
+        ;;
+    "uat/current")
+        color-out $red $b
+        ;;
+    "master")
+        color-out $red $b
+        ;;
+    *)
+        color-out $green "$b "
+        ;;
+    esac
     if [ -e $filename ]
     then
         if [[ $1 == "--all" ]]
         then
-            firstline=$(cat $filename)
+            cat $filename
         else
-            firstline=$(head -n 1 $filename)
+            head -n 1 $filename
         fi
-        echo "$b $firstline"
     else
-        echo $b
+        echo
     fi
 done
 
