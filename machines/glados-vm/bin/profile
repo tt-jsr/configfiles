@@ -1,0 +1,7 @@
+#This contains alias and other comands for use when I ssh into remote machines
+export PATH=$PATH:/home/jrichards
+alias cdlog='cd /var/log/debesys'
+alias cdetc='cd /etc/debesys'
+alias ll='ls -lFh'
+
+tar xvf stuff.tar

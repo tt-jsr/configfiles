@@ -63,6 +63,9 @@ nmap <leader>w :w!<cr>
 
 set nocompatible
 
+"Set thge folding
+"set fdm=indent
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => VIM user interface
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -116,6 +119,7 @@ set noerrorbells
 set novisualbell
 set t_vb=
 set tm=500
+
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -349,7 +353,10 @@ map <leader>q :e ~/buffer<cr>
 " Toggle paste mode on and off
 map <leader>pp :setlocal paste!<cr>
 
-
+" gcc make error
+set errorformat^=%-GIn\ file\ included\ from\ %f:%l:%c:,%-GIn\ file
+           \\ included\ from\ %f:%l:%c\\,,%-GIn\ file\ included\ from\ %f
+           \:%l:%c,%-GIn\ file\ included\ from\ %f:%l
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Helper functions

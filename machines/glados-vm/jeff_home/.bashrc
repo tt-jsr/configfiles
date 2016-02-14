@@ -143,3 +143,11 @@ export VCD_ORG=Dev_General
 #bump cookbooks to use ldap for authentication
 export BCV_ENABLE_LDAP=1
 
+export JAVA_HOME=/usr/java/jdk1.7.0_17
+
+#some useful stuff
+export cf=orders/cf/include/cf
+export asx=orders/asx/include/asx
+export allmessages=all_messages/source/tt/messaging
+
+

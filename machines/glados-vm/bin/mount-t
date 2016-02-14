@@ -1,0 +1,1 @@
+sudo mount -t cifs //chifs02/SQE -o username=jrichards /mnt/t_drive
