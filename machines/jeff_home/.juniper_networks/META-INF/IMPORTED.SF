@@ -1,0 +1,28 @@
+Signature-Version: 1.0
+Created-By: 1.4.1_02 (Sun Microsystems Inc.)
+SHA1-Digest-Manifest: Xx1NRQRMF24yJVTpg03knLGJFL4=
+
+Name: ncdiag
+SHA1-Digest: a8p31DPUDtxLdav8CIcBbfaa7QQ=
+
+Name: ncsvc
+SHA1-Digest: RUePbE++ru1qQGxZo4Q5x5oqC7c=
+
+Name: xlaunchNC.sh
+SHA1-Digest: RvXQubcH2VLjQZr51ZWgrmQk0CE=
+
+Name: installNC.sh
+SHA1-Digest: 1ZlsSZJkui3JyjZepUF21LlUPvU=
+
+Name: version.txt
+SHA1-Digest: vLRW8dgff/Rgq6jTHZ2UbWKdygg=
+
+Name: libncui.so
+SHA1-Digest: FsdUM6m8RZMl5NZ5gwaFGEl2r/0=
+
+Name: getx509certificate.sh
+SHA1-Digest: bOAV3xQdrcdHRd+aZA3m3MIzq+E=
+
+Name: NC.jar
+SHA1-Digest: LdHYdDY39f/6V0dZYgx3y6DPlsE=
+

@@ -75,7 +75,7 @@ esac
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-    alias ls='ls -F --color=auto'
+    alias ls='ls --color=auto'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
 
@@ -84,9 +84,14 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
-CPU=`nproc`
+# colored GCC warnings and errors
+#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # some more ls aliases
+alias ll='ls -l'
+alias la='ls -A'
+#alias l='ls -CF'
+
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
@@ -107,10 +112,10 @@ if ! shopt -oq posix; then
   fi
 fi
 
-set -o vi
-export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LIBRARY_PATH
-unset LC_ALL
+export JUNIPER_USERNAME=jrichards
+function ttvpn ()
+{
+        sudo $HOME/.juniper_networks/ncsvc -h us-ttvpn.tradingtechnologies.com -u $JUNIPER_USERNAME -p $1 -r "TT VPN" -f $HOME/.juniper_networks/tt.cert ;
+}
 
-export JENKINS_USER=jeff.richards@tradingtechnologies.com
-export JENKINS_TOKEN=a8782d848f0a9de570e6de3b2da6218e
-export EDITOR=vim
+set -o vi
