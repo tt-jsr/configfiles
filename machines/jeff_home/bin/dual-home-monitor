@@ -1,1 +1,2 @@
+xrandr --auto
 xrandr --output HDMI1 --right-of LVDS1
