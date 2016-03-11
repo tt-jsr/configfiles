@@ -2,6 +2,7 @@
 export PATH=$PATH:/home/jrichards
 alias cdlog='cd /var/log/debesys'
 alias cdetc='cd /etc/debesys'
+alias cdopt='cd /opt/debesys'
 alias ll='ls -lFh'
 alias la='ls -a'
 set -o vi
