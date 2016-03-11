@@ -46,29 +46,18 @@ function select-machine {
 function select-files {
     files=()
 
-    if [ $src_ip = "10.192.0.40" ]
-    then
-        echo -n "intad name: "
-        read username
-        echo -n "intad password: "
-        read -s password
-        echo
-    else
-        username=root
-        password=Tt12345678
-    fi
-    sshfiles=`sshpass -p $password ssh ${username}@$src_ip "cd /var/log/debesys;ls $glob"`
+    sshfiles=`ssh jrichards@$src_ip "cd /var/log/debesys;ls $glob"`
     for file in $sshfiles
     do 
         if [[ $file =~ ^.*-[0-9]*\.gz$ ]]   # dated zip files
         then
-            filedate=`echo $file | sed 's/.*-\([0-9]*\)\..*/\1/'`
+            filedate=`echo $file | sed 's/.*-\([0-9]*\)-.*/\1/'`
             parsedate=`date --date=$filedate "+%a %b %d %Y"`
             files+=("${file} ($parsedate)")
         else
             if [[ $file =~ ^.*-[0-9]*$ ]]   # dated files, not zipped
             then
-                filedate=`echo $file | sed 's/.*-\([0-9]*\)/\1/'`
+                filedate=`echo $file | sed 's/.*-\([0-9]*\)-.*/\1/'`
                 parsedate=`date --date=$filedate "+%a %b %d %Y"`
                 files+=("${file} ($parsedate)")
             else
@@ -81,31 +70,23 @@ function select-files {
     select file in ${files[@]}
     do 
         f=`echo $file | sed 's/\([^ ]*\).*/\1/'`
-        sshpass -p $password scp $username@$src_ip:/var/log/debesys/$f $dest
+        scp jrichards@$src_ip:/var/log/debesys/$f $dest
         echo "${dest}/$f written"
     done
 }
 
-if [ -z "$1" -o -z "$2" ]
+if [ -z "$1" -o -z "$2" -o -z "$3" ]
 then 
-    echo "Usage: scp-log env recipe glob"
-    echo "Environments: dev, stage, sqe, devsim"
-    echo "              uat, prod, prodsim"
+    echo "Usage: scp-log destfolder ip glob"
     exit
 fi
 
-env=$1
-recipe=$2
-if [ -z "$3" ]
-then
-   glob="${2}*"
-else
-   glob=$3
-fi
-select-machine $env $recipe
+destfolder=$1
+src_ip=$2
+glob=$3
+#select-machine $env $recipe
 
-dest=/var/log/debesys/${env}/${recipe}/${src_ip}
+dest=/var/log/debesys/${destfolder}/${src_ip}
 mkdir -p $dest
 select-files 
 
- 

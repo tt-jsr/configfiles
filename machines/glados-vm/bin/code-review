@@ -1,0 +1,26 @@
+#!/bin/bash
+
+function usage()
+{
+    echo "Usage: code-review git-flow-branch issue"
+}
+
+if [[ $1 == "" ]]
+then
+    usage
+    exit 1
+fi
+
+if [[ $2 == "" ]]
+then
+    usage
+    exit 1
+fi
+
+gitflow=$1
+issue=$2
+
+git fetch origin
+branch=$(git for-each-ref --format='%(refname)' refs/remotes | grep $2)
+git-diff-files origin/${gitflow}...${branch}
+

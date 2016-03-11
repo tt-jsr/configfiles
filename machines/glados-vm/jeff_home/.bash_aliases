@@ -63,8 +63,6 @@ function ttlog {
 }
 
 function git-checkout {
-    git fetch origin
-    git remote prune origin
     if [ -n "$1" ]
     then
         case $1 in
@@ -95,6 +93,17 @@ function git-checkout {
         done
     fi
     git checkout $branch
+    echo -n "(f)tech and merge, (m)erge, (n)one: ?"
+    read ans
+    if [ "$ans" == "f" ]
+    then
+        git fetch origin
+        git merge origin/$branch
+    fi
+    if [ "$ans" == "m" ]
+    then
+        git merge origin/$branch
+    fi
     echo "git submodule update"
     git submodule update
     git stash list

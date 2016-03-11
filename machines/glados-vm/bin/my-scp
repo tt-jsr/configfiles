@@ -1,1 +1,0 @@
-sshpass -p Tt12345678 scp $1 $2

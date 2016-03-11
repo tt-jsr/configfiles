@@ -59,6 +59,7 @@ accept_patterns = [
     (faccept, "S T A R T"),
     (faccept, "S T O P"),
     (faccept, "CLUSTER_MGR"),
+    (faccept, "Requesting ttus data from url="),
     (faccept, "| STARTUP"),
     (faccept, "| CONNECTION"),
     (faccept, "| USER"),
@@ -76,10 +77,17 @@ accept_patterns = [
 ]
 
 reject_patterns = [
+    #(freject, "TTUS WSS"),
+    (freject, "End of Transport"),
+    (freject, "Beginning of Transport"),
     (reject_session_manager, None),
+    (freject, "INSTRUMENT_STORE"),
+    (faccept, "ERROR"),
+    (faccept, "WARNING"),
+    (faccept, "CRITICAL"),
+    (faccept, "Requesting ttus data from url="),
     (freject, "ttus_handler.cpp"),
     (freject, "lbm_cpp.h"),
-    (freject, "INSTRUMENT_STORE"),
     (freject, "| lbm |"),
     (freject, "| LBM |"),
     (freject, "JSONtopb.h"),

@@ -18,13 +18,13 @@ then
     files=`git diff --name-only $1 -- $DIR`
     select file in $files;
     do 
-        git difftool -y $1 -- $file;
+        git difftool -t meld -y $1 -- $file;
     done
 else
     files=`git diff --name-only $1`
     select file in $files;
     do 
-        git difftool -y $1 -- $file;
+        git difftool -t meld -y $1 -- $file;
     done
 fi
 

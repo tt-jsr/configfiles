@@ -1,0 +1,5 @@
+cp ~/.vimrc .
+cp ~/.tmux.conf .
+tar cvf stuff.tar .tmux.conf .vimrc mysudo pfmt profile filterlog.py
+rm .vimrc
+rm .tmux.conf

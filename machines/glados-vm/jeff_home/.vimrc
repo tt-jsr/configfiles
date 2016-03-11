@@ -58,8 +58,8 @@ set autoread
 let mapleader = ","
 let g:mapleader = ","
 
-" Fast saving
-nmap <leader>w :w!<cr>
+" toggle wrap
+nmap <leader>w :set wrap!<cr>
 
 set nocompatible
 
@@ -438,7 +438,6 @@ command -nargs=0 Todo :call Todo()
 "==========================================================
 function Make(proj)
     wall
-    cd ~/projects/debesys
     let cmd = "make -j2 -Rr --quiet show_progress=1 config=debug " . a:proj
     exec cmd
     cwindow
@@ -502,8 +501,8 @@ command! -nargs=* Find :call Find(<f-args>)
 function Myhelp()
     echo "<F1> :MyHelp"
     echo "<F2> File marks"
-    "echo "<C-F2> Local marks"
-    "echo "<S-F2> Auto marks"
+    echo "<C-F2> Local marks"
+    echo "<S-F2> Auto marks"
     echo "<F3> :grep <cword> *"
     echo "<F5> :BufExplorer"
     echo "<F6> :file namanager"
@@ -514,7 +513,10 @@ function Myhelp()
     echo "#<C-F9> :NERDTreeClose"
     echo
     echo ":Todo - Recursivily find todo..: lines"
-    echo ":Listtags - List tags on current word"
+    'echo ":Listtags - List tags on current word"
+    echo ":Pfmt"
+    echo ":FoldOn"
+    echo "Foldoff"
 
 endfunction
 command -nargs=0 Myhelp :call Myhelp()
@@ -526,12 +528,12 @@ command -nargs=0 Myhelp :call Myhelp()
 "===========================================================
 nnoremap <F1> :Myhelp<CR>
 nnoremap <F2> :marks ABCDEFGHIJKLMNOPQRSTUVWXYZ<CR>
-"nnoremap <C-F2> :marks abcdefghijklmnopqrstuvwxyz<CR>
-"nnoremap <S-F2> :marks 0123456789[]<>`'^.(){}<CR>
+nnoremap <C-F2> :marks abcdefghijklmnopqrstuvwxyz<CR>
+nnoremap <S-F2> :marks 0123456789[]<>`'^.(){}<CR>
 nnoremap <F3> :grep <cword> %:h/*<CR>
 "nnoremap <F4> :tabnew<CR>
 nnoremap <F5> :BufExplorer<CR>
-nnoremap <F6> :!nautilus --no-desktop --browser .&<CR>
+"nnoremap <F6> :!nautilus --no-desktop --browser .&<CR>
 nnoremap <F8> :cnext<CR>
 "nnoremap <C-F8> :cprev<CR>
 nnoremap <F9> :NERDTree<CR>
@@ -559,34 +561,15 @@ function Pfmt()
 endfunction
 command -nargs=0 Pfmt :call Pfmt()
 
-"==========================================================
-function Logcleanup()
-    :1,$g/Core-5688/d
-    :1,$g/THROTTLED MSG/d
-    :1,$g/SyncInstrumentDownload/d
-    :1,$g/^$/d
-    :1,$g/| darwin/d
-    :1,$g/| cumulus/d
-    :1,$g/| lbm_/d
-    :1,$g/| Zookeeper/d
+function Foldon()
+    :setlocal foldmethod=syntax
+    :set foldnestmax=2
+endfunction
+command -nargs=0 Foldon :call Foldon()
 
+function Foldoff()
+    :setlocal foldmethod=none
 endfunction
-command -nargs=0 Logcleanup :call Logcleanup()
+command -nargs=0 Foldoff :call Foldoff()
 
-"==========================================================
-function LogTtuscleanup()
-    :1,$g/ttus.pub.up/d
-    :1,$g/Ignoring (and not watching) unsupported exchange id in connection update message/d
-endfunction
-command -nargs=0 LogTtuscleanup :call LogTtuscleanup()
-"
-"==========================================================
-function LogInstrumentcleanup()
-    :1,$g/Instrument:/d
-    :1,$g/Processed .* instruments for/d
-    :1,$g/Requested instruments for/d
-    :1,$g/InstrumentDownload finished;/d
-    :1,$g/SyncInstrumentDownload started/d
-    :1,$g/Downloaded .* instruments from/d
-endfunction
-command -nargs=0 LogInstrumentcleanup :call LogInstrumentcleanup()
+

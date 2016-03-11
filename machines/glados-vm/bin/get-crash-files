@@ -17,7 +17,7 @@ case $EXCHANGE in
     ;;
 "eex_derivative_otc")
     OPT_DIR=$EXCHANGE
-    BINARY="eurex"
+    BINARY="eurex_otc"
     ;;
 "ice_l")
     OPT_DIR=$EXCHANGE
