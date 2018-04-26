@@ -1,76 +1,14 @@
 
-function select-machine {
-    knife=~/.chef/knife.rb
-
-    case $1 in
-    dev)
-        env='int-dev-cert'
-        ;;
-    stage)
-        env='int-stage-cert'
-        ;;
-    devsim)
-        env='int-dev-sim'
-        ;;
-    sqe)
-        env='int-sqe-cert'
-        ;;
-    uat)
-        env='ext-uat-cert'
-        knife=~/.chef/knife.external.rb
-        ;;
-    prod)
-        env='ext-prod-live'
-        knife=~/.chef/knife.external.rb
-        ;;
-    prodsim)
-        env='ext-prod-sim'
-        knife=~/.chef/knife.external.rb
-        ;;
-    *)
-        env=$1
-        ;;
-    esac
-
-    oc=$2
-    ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
-
-    PS3="Machine: "
-    select selection in $ips
-    do
-        src_ip=$selection
-        return
-    done
-}
-
 function select-files {
-    files=()
-
-    sshfiles=`ssh jrichards@$src_ip "cd /var/log/debesys;ls $glob"`
-    for file in $sshfiles
-    do 
-        if [[ $file =~ ^.*-[0-9]*\.gz$ ]]   # dated zip files
-        then
-            filedate=`echo $file | sed 's/.*-\([0-9]*\)-.*/\1/'`
-            parsedate=`date --date=$filedate "+%a %b %d %Y"`
-            files+=("${file} ($parsedate)")
-        else
-            if [[ $file =~ ^.*-[0-9]*$ ]]   # dated files, not zipped
-            then
-                filedate=`echo $file | sed 's/.*-\([0-9]*\)-.*/\1/'`
-                parsedate=`date --date=$filedate "+%a %b %d %Y"`
-                files+=("${file} ($parsedate)")
-            else
-                files+=("$file")  # evrything else
-            fi       
-        fi
-    done
-    IFS=":"
+    sshfiles=$(ssh jrichards@$src_ip "cd /var/log/debesys;ls -lrth $glob" | tr "\n" '|')
+    IFS="|"
     PS3="File: "
-    select file in ${files[@]}
+    select file in $sshfiles
     do 
-        f=`echo $file | sed 's/\([^ ]*\).*/\1/'`
-        scp jrichards@$src_ip:/var/log/debesys/$f $dest
+        unset IFS
+        read -a PARTS <<< $file
+        f=${PARTS[8]}
+        scp jrichards@$src_ip:/var/log/debesys/$f $dest/$f
         echo "${dest}/$f written"
     done
 }
@@ -84,7 +22,6 @@ fi
 destfolder=$1
 src_ip=$2
 glob=$3
-#select-machine $env $recipe
 
 dest=/var/log/debesys/${destfolder}/${src_ip}
 mkdir -p $dest

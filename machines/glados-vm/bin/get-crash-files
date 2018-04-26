@@ -13,7 +13,7 @@ EXCHANGE=$1
 case $EXCHANGE in
 "eex_derivative")
     OPT_DIR=$EXCHANGE
-    BINARY="eurex"
+    BINARY="eurex_otc"
     ;;
 "eex_derivative_otc")
     OPT_DIR=$EXCHANGE
@@ -44,5 +44,16 @@ then
     tar xzf $TARFILE
 fi
 
-gdb -ex "set solib-search-path /tmp/$DIR" -ex "set solib-absolute-prefix /tmp/$DIR" -ex "file /tmp/$DIR/opt/debesys/$OPT_DIR/bin/$BINARY" -ex "core-file /tmp/$DIR/var/spool/abrt/$COREFILE"
+echo -n "Enter hash from email: "
+read HASH
+REPO="/home/jeff/projects/debesys"
+CONFIG="debug"
+BUILD="$REPO/build/x86-64/$CONFIG"
+EXT="$REPO/ext/linix/x86-64/release"
+SOLIBS="/tmp/$DIR:$EXT/lib:$EXT/lib64:$BUILD/lib"
+
+#gdb -ex "set solib-search-path $SOLIBS" -ex "set solib-absolute-prefix /tmp/$DIR" -ex "file /tmp/$DIR/opt/debesys/$OPT_DIR/bin/$BINARY" -ex "core-file /tmp/$DIR/var/spool/abrt/$COREFILE" -ex "set substitute-path /home/jenkins/fsroot/debrepo $REPO" -ex "directory $REPO"
+
+
+gdb -ex "set solib-search-path $SOLIBS" -ex "set solib-absolute-prefix /tmp/$DIR" -ex "file /tmp/$DIR/var/debesys/cache/apps/$EXCHANGE/debesys-$HASH-ocs/bin/$BINARY" -ex "core-file /tmp/$DIR/var/spool/abrt/$COREFILE" -ex "set substitute-path /home/jenkins/fsroot/debrepo $REPO" -ex "directory $REPO"
 

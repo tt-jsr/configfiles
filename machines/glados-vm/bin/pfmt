@@ -110,7 +110,7 @@ def main():
             else:
                 parts = words[i].split('=')
                 if len(parts) == 2:
-                    fields = ["client_time_sent", "order_received_oc", "time_sent", "transact_time", "received_from_exchange", "time_sent_exchange"]
+                    fields = ["client_time_sent", "order_received_oc", "received_oc", "time_sent", "transact_time", "received_from_exchange", "time_sent_exchange"]
                     if i > 0 and (parts[0] in fields):
                         t = int(parts[1])/1000000000
                         r = int(parts[1]) - (t*1000000000)

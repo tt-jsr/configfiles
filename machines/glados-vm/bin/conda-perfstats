@@ -1,0 +1,2 @@
+export PATH=/home/jeff/nobackup/anaconda2/bin:$PATH
+source activate perfstats

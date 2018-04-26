@@ -1,0 +1,13 @@
+if [[ -z $1 ]]
+then
+    echo "Usage: logtimes pattern"
+    echo "       pattern should be single quoted"
+    exit
+fi
+FILES=`ls -rth $1`
+for f in $FILES
+do
+    echo -n "$f : "
+    zcat -f $f | head -1 | cut -c -24
+done
+

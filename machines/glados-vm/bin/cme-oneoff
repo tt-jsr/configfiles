@@ -1,0 +1,41 @@
+#IP=10.192.0.170   # perf in int-dev-cert
+#IP=10.204.0.44   # scale env?
+#IP=10.205.0.231   # scale env?
+IP=10.205.0.31   # perf env?
+DEST=/tmp/jeff-oneoff
+USER=jrichards
+#REPO=testrepo
+REPO=debesys
+
+
+if [[ $1 == "--help" ]]
+then
+    echo "${USER}@${IP}:${DEST}"
+    exit 0
+fi
+
+echo "Repo: ${REPO}"
+echo "IP: ${IP}"
+
+echo -n "Continue (y/n) ? "
+read yno
+if [[ $yno != "y" ]]
+then
+    exit
+fi
+
+ssh ${USER}@${IP} "mkdir -p ${DEST}/lib ${DEST}/bin"
+
+cd ~/projects/$REPO/build/x86-64/release/lib
+scp liball_messages.so ${USER}@${IP}:${DEST}/lib
+
+cd ../bin
+scp cme ${USER}@${IP}:${DEST}/bin/cme
+scp cme-perf ${USER}@${IP}:${DEST}/bin/cme-perf
+
+scp ~/bin/install-cme-oneoff ${USER}@${IP}:${DEST}
+scp ~/bin/remove-cme-oneoff ${USER}@${IP}:${DEST}
+
+echo "Files copied to ${IP}:${DEST}"
+
+myssh $IP

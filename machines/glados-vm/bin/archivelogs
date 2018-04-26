@@ -1,0 +1,15 @@
+cd /var/log/debesys
+destdir="./archive/$(date +%Y-%m-%d-%H%M%S)"
+if [[ $1 != "" ]]
+then
+    destdir="${destdir}_$1"
+fi
+mkdir -p $destdir
+FILES=`ls`
+for f in $FILES
+do
+    if [[ -f $f ]]
+    then
+        mv $f $destdir
+    fi
+done

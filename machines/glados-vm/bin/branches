@@ -14,32 +14,43 @@ function color-out {
 for b in $branches; do
     filename="/home/jeff/gitbranches/$b"
     case $b in
-    "develop")
+    ocintegration)
         color-out $red $b
+        echo
         ;;
-    "release/current")
+    release_v*/current)
         color-out $red $b
+        echo
         ;;
-    "uat/current")
+    master)
         color-out $red $b
-        ;;
-    "master")
-        color-out $red $b
+        echo
         ;;
     *)
-        color-out $green "$b "
-        ;;
-    esac
-    if [ -e $filename ]
-    then
-        if [[ $1 == "--all" ]]
+        issue=$(echo -n $b | sed 's/.*DEB-\([0-9]*\).*/\1/')
+        if [[ -e $filename ]]
         then
+            status=`jira.py -f {status} $issue`
+            color-out $green "$b $status "
             cat $filename
         else
-            head -n 1 $filename
+            hasIssue=$(echo -n $b | sed -nr '/[0-9]+/p')
+            if [[ -z $hasIssue ]]
+            then
+                color-out $green $b
+                echo
+            else
+                base=$(dirname $filename)
+                if [[ ! -e $base ]]
+                then
+                    mkdir -p $base
+                fi
+                color-out $green "$b "
+                jira.py -f "{summary}" $issue > $filename
+                cat $filename
+            fi
         fi
-    else
-        echo
-    fi
+        ;;
+    esac
 done
 

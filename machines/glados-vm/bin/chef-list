@@ -13,8 +13,14 @@ case $1 in
 dev)
     env='int-dev-cert'
     ;;
+dev-eex)
+    env='int-dev-cert-eex'
+    ;;
 stage)
     env='int-stage-cert'
+    ;;
+stage-eex)
+    env='int-stage-cert-eex'
     ;;
 devsim)
     env='int-dev-sim'
@@ -26,8 +32,16 @@ uat)
     env='ext-uat-cert'
     knife=~/.chef/knife.external.rb
     ;;
+uat-eex)
+    env='ext-uat-cert-eex'
+    knife=~/.chef/knife.external.rb
+    ;;
 prod)
     env='ext-prod-live'
+    knife=~/.chef/knife.external.rb
+    ;;
+prod-eex)
+    env='ext-prod-live-eex'
     knife=~/.chef/knife.external.rb
     ;;
 prodsim)
@@ -40,5 +54,9 @@ prodsim)
 esac
 
 oc=$2
-ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND recipe:$oc" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
-echo $ips
+~/projects/debesys/run ~/projects/debesys/ttknife --config $knife search node "chef_environment:$env AND deployed_cookbooks:$oc" | sed -n '/Node Name/p
+/IP:/p
+/Run List/p
+/Tags/p
+/^$/p'
+

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+BINDIR=/opt/debesys/cme/bin
+LIBDIR=/opt/debesys/cme/lib
+
+if [[ -f ${BINDIR}/cme.orig ]]
+then
+    echo "renaming .orig files"
+    mv  ${BINDIR}/cme.orig ${BINDIR}/cme
+    mv  ${LIBDIR}/liball_messages.so.orig ${LIBDIR}/liball_messages.so
+else
+    echo "Oneoff not installed"
+fi
+
+

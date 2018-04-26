@@ -36,8 +36,11 @@ def get_last_commit_info(branches):
     """
     arr=[]
     for branch_name in branches:
-        info = exec_command('git log -1 --format="%an|%ar" {0}'.format(branch_name))
-        arr.append("{0}|{1}".format(branch_name, info.strip()))
+        try:
+            info = exec_command('git log -1 --format="%an|%ar" {0}'.format(branch_name))
+            arr.append("{0}|{1}".format(branch_name, info.strip()))
+        except:
+            print "Error processing branch {0}".format(branch_name)
 
     return arr
 

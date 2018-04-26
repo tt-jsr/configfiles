@@ -1,0 +1,155 @@
+#!/bin/bash
+
+ase_filter="/session_manager_inl/d
+#OC patterns *************************
+/INSTRUMENT_STORE/d
+/darwin\./d
+/CassandraMessageStore/d
+/| LBM |/d
+/| lbm |/d
+/| ump:/d
+/lbm_cpp\.h/d
+/JSONtopb\.h/d
+/Cassandra upload/d
+/TTUSApiHandler/d
+/ttus_api\.cpp/d
+/TTUS WSS.*heartbeat/d
+/TTUS WSS: recv/d
+/Throttle rate for the primary/d
+/openssl_initializer.cpp:57/d
+/LBM channel source (PENDING) created for connection_id/d
+/LBM channel source created for connection_id/d
+/Deleting pending topic=/d
+/Beginning of Transport/d
+/End of Transport/d
+/CONNECTION-[0-9]* | Ignoring/d
+/CONNECTION-[0-9]* | This does not look like/d
+#ASE patterns *************************
+/Created .* on topic=/d
+/PriceClient/d
+/Composer:/d
+/ServerChannel/d
+/Creating a sender for topic/d
+/RISK:/d
+/handleManagedMessage/d
+/NativeAseServer/d
+/RL: /d
+/Deleting source topic=/d
+/Stats for/d
+/Total stats for/d
+/ASE: TTUS:/d
+/DataQueue/d
+/^$/d"
+
+algo_filter="/session_manager_inl/d
+/INSTRUMENT_STORE/d
+/darwin\./d
+/CassandraMessageStore/d
+/| LBM |/d
+/| lbm |/d
+/| ump:/d
+/lbm_cpp\.h/d
+/JSONtopb\.h/d
+/Cassandra upload/d
+/TTUSApiHandler/d
+/ttus_api\.cpp/d
+/openssl_initializer.cpp:57/d
+/LBM channel source (PENDING) created for connection_id/d
+/LBM channel source created for connection_id/d
+/Deleting pending topic=/d
+/TTUS WSS.*heartbeat/d
+/TTUS WSS: recv/d
+/Throttle rate for the primary/d
+/Deleting source topic=/d
+/CONNECTION-[0-9]* | Ignoring/d
+/CONNECTION-[0-9]* | This does not look like/d
+/^$/d"
+
+oc_filter="/session_manager_inl/d
+/INSTRUMENT_STORE/d
+/darwin\./d
+/CassandraMessageStore/d
+/| LBM |/d
+/| lbm |/d
+/| ump:/d
+/lbm_cpp\.h/d
+/JSONtopb\.h/d
+/Cassandra upload/d
+#/TTUSApiHandler/d
+#/ttus_api\.cpp/d
+/openssl_initializer.cpp:57/d
+/LBM channel source (PENDING) created for connection_id/d
+/LBM channel source created for connection_id/d
+/Deleting pending topic=/d
+/TTUS WSS.*heartbeat/d
+#/TTUS WSS: recv/d
+/Throttle rate for the primary/d
+/Deleting source topic=/d
+/CONNECTION-[0-9]* | Ignoring/d
+/CONNECTION-[0-9]* | This does not look like/d
+/^$/d"
+
+cluster="/CLUSTER/p
+/LOADBALANCE/p
+/AOTC/p
+/S T A R T/p"
+
+TAIL=0
+SOURCE="/dev/stdin"
+FILTER=$oc_filter
+QUIET=""
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -t|--tail)
+        TAIL=1
+        shift # past argument
+        ;;
+        --oc)
+        FILTER=$oc_filter
+        shift # past argument
+        ;;
+        --ase)
+        FILTER=$ase_filter
+        shift # past argument
+        ;;
+        --algo)
+        FILTER=$algo_filter
+        shift # past argument
+        ;;
+        --cluster)
+        FILTER=$cluster
+        shift # past argument
+        ;;
+        -h|--help)
+        echo "usage: logclean [-t|--tail] [--oc] [--ase] [--algo] [--cluster]  filename"
+        echo "       Filter a log file. Output is written to stdout, if filename"
+        echo "       is not specified, read stdin"
+        echo "       --tail: Tail the logfile"
+        echo "         --oc: Use the OC log filter. This is the default"
+        echo "        --ase: Use the ase-nirvana filter"
+        echo "       --algo: Use the algo-nirvana filter"
+        exit 1
+        ;;
+        *)
+        SOURCE=$key
+        shift
+        ;;
+    esac
+done
+
+IFS=''
+
+echo "The following lines are filtered out:"
+echo $FILTER
+echo "*******************************************************"
+if [[ $TAIL == 0 ]]
+then
+    sed $QUIET "$FILTER" < $SOURCE 
+else
+
+    tail -f $SOURCE | sed $QUIET "$FILTER"
+fi

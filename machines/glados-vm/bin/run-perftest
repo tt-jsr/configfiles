@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cme-oneoff
+echo "ssh into perfautomation"
+ssh perfautomation@10.204.2.44 ./restart_perfOC.sh
+
+echo "ssh into simutrader"
+ssh jrichards@10.205.0.32 sudo stop Ase
+ssh jrichards@10.205.0.32 sudo /opt/debesys/simutrader/run /opt/debesys/simutrader/bin/simutrader -m /etc/debesys/lbm.conf -f /etc/debesys/simutrader_user_1_debesys.cfg -r 1000 -t 7000

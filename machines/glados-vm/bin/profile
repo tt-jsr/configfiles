@@ -1,5 +1,5 @@
 #This contains alias and other comands for use when I ssh into remote machines
-export PATH=$PATH:/home/jrichards
+export PATH=$PATH:/home/jrichards:/home/jrichards/logdb
 alias cdlog='cd /var/log/debesys'
 alias cdetc='cd /etc/debesys'
 alias cdopt='cd /opt/debesys'
@@ -8,3 +8,14 @@ alias la='ls -a'
 set -o vi
 
 tar xvf stuff.tar
+tar xf plumbum.tar
+
+logstart() 
+{
+    FILES=`ls -rt $1*`
+    for f in $FILES 
+    do
+        echo -n "$f  "
+        zcat -f $f | head -1 | cut -c -26
+    done
+}

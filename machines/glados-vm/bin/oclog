@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-# format a log line containing a fix message
+# format a log line containing a protobuf message
 # This is intended to be used from within vim
-# :.!fixfmt 
+# :.!pfmt
 # Will format the current line.
 
+import argparse
 import sys
 import time
 
-ungetchar = None
 Tags = []
 Tags.append('(0) invalid')
 Tags.append('(1) Account')
@@ -1787,104 +1787,6 @@ Side = {}
 Side['1'] = '(1) Buy'
 Side['2'] = '(2) Sell'
 
-def output(c):
-    sys.stdout.write(c)
-
-def getc():
-    global ungetchar
-    if ungetchar != None:
-        c = ungetchar
-        ungetchar = None
-        return c
-    return sys.stdin.read(1)
-
-def ungetc(c):
-    global ungetchar
-    ungetchar = c
-
-def getline():
-    s = ""
-    while True:
-        c = getc()
-        if c == '' or c == '\n':
-            return s
-        s += c
-
-def skipUntil(list):
-    while True:
-        try:
-            c = getc()
-        except:
-            exit()
-        if c == "":
-            return
-
-        if c in list:
-            ungetc(c)
-            return
-        if c == '"':
-            skipUntil('"')
-            getc()
-
-def outputUntil(list):
-    while True:
-        try:
-            c = getc()
-        except:
-            exit()
-        if c == "":
-            return
-
-        if c in list:
-            ungetc(c)
-            return
-        if c == '"':
-            outputUntil('"')
-            getc()
-            output('"')
-        output(c)
-
-def skipWhile(list):
-    while True:
-        try:
-            c = getc()
-        except:
-            exit()
-        if c == "":
-            return None
-
-        if c in list:
-            pass
-        else:
-            ungetc(c)
-            return
-
-def collectUntil(list):
-    s = ""
-    while True:
-        try:
-            c = getc()
-        except:
-            exit()
-        if c == "":
-            return s
-
-        if c in list:
-            ungetc(c)
-            return s
-        if c == '"':
-            s += '"'
-            s += collectUntil('"')
-            s += getc()
-        else:
-            s += c
-
-def collectWord():
-    s = ""
-    while True:
-        skipWhile(' ')
-        return collectUntil(" ")
-
 def ToTag(w):
     n = int(w);
     if n > len(Tags):
@@ -1916,35 +1818,301 @@ def ToExecType(w):
         return ExecType[w]
     return w
 
-def fixfmt():
-    skipUntil('|')
-    getc()
-    skipUntil('|')
-    getc()
-    output('\n')
+######################################################
+
+class ExecutionReport(object):
+    def __init__(self):
+        self.timestamp = None
+        self.fields = {}
+        self.lineno = 0
+
+    def order_id(self):
+        return self.getValue("order_id")
+
+    def ord_status(self):
+        return self.getValue("ord_status")
+
+    def cl_ord_id(self):
+        return self.getValue("cl_ord_id")
+
+    def exec_id(self):
+        return self.getValue("exec_id")
+
+    def getValue(self, field):
+        try:
+            return self.fields[field]
+        except:
+            return None
+
+######################################################
+
+class ExecutionReports(object):
+    def __init__(self):
+        self.ers = []
+        self.file = None
+        self.lineno = 0
+
+    def findFirst(self, field, value):
+        for er in self.ers:
+            val = er.getValue(field)
+            if val != None and val == value:
+                return er;
+        return None
+
+    def findAll(self, field, value):
+        lst = []
+        for er in self.ers:
+            val = er.getValue(field)
+            if val != None and val == value:
+                lst.append(er)
+        return lst
+
+    def parseLine(self):
+        er = ExecutionReport()
+        line = self.file.readline()
+        if line == "":
+            return (True, None)
+        self.lineno = self.lineno + 1
+        sections = line.split('|')
+        if len(sections) > 9:
+            type =  sections[5].strip()
+            if type == "ExecutionReport" or type == "OrderCancelReject":
+                er.timestamp = sections[0].strip()
+                orderIdPair = sections[6].strip().split('=')
+                parts = sections[9].split(' ')
+                for p in parts:
+                    kv = p.split('=')
+                    if len(kv) == 2:
+                        key = kv[0].strip()
+                        value = kv[1].strip()
+                        if value[0] == '"':
+                            value = value[1:-1]
+                        er.fields[key] = value
+                exec_type =  er.getValue("exec_type")
+                if exec_type == None or exec_type.startswith("EXEC_TYPE_PENDING_") == False:
+                    er.fields["order_id"] = orderIdPair[1]
+                    er.lineno = self.lineno
+                    er.raw = line
+                    return (False, er)
+        return (False, None)
+
+    def nextER(self):
+        eof = False
+        while not eof:
+            eof, er = self.parseLine()
+            if er:
+                return er;
+        return None
+
+    def openFile(self, fname):
+        self.file = open(fname, "r")
+        if self.file == None:
+            return False
+        return True
+
+    def loadFile(self):
+        while True:
+            er = self.nextLine()
+            if er == None:
+                return
+            self.ers.append(er)
+
+######################################################
+
+class Fix(object):
+    def __init__(self):
+        self.timestamp = None
+        self.fields = {}
+        self.lineno = 0
+        self.raw = None
+        self.send = False
+
+    def execId(self):
+        return self.getValue("17")
+
+    def clOrdId(self):
+        return self.getValue("11")
+
+    def getValue(self, tag):
+        try:
+            return self.fields[tag]
+        except:
+            return None
+
+######################################################
+
+class FixLog(object):
+    def __init__(self):
+        self.send = []
+        self.recv = []
+        self.file = None
+        self.lineno = 0
+
+    def sendFindFirst(self, k, v):
+        for s in self.send:
+            val = s.getValue(k)
+            if v != None and v == val:
+                return s
+        return None
+
+    def sendFindAll(self, k, v):
+        lst = []
+        for s in self.send:
+            val = s.getValue(k)
+            if v != None and v == val:
+                lst.append(s)
+        return lst
+
+    def recvFindFirst(self, k, v):
+        for r in self.recv:
+            val = r.getValue(k)
+            if v != None and v == val:
+                return r
+        return None
+
+    def recvFindAll(self, k, v):
+        lst = []
+        for r in self.recv:
+            val = r.getValue(k)
+            if v != None and v == val:
+                lst.append(r)
+        return lst
+
+    def parseLine(self):
+        fix = Fix()
+        line = self.file.readline()
+        if line == "":
+            return (True, None)
+        self.lineno = self.lineno + 1
+        parts = line.split('|')
+        if len(parts) == 3:
+            fix.timestamp = parts[1].strip()
+            fields = parts[2].split('\001')
+            for f in fields:
+                kv = f.split('=')
+                if len(kv) == 2:
+                    fix.fields[kv[0].strip()] = kv[1].strip()
+        if fix.getValue("35") != "0":   # don't want heartbeats
+            fix.lineno = self.lineno
+            fix.raw = line.replace('\001', '|')
+            if parts[0].strip() == "Send":
+                fix.send = True
+            else:
+                fix.send = False
+            return (False, fix)
+        return (False, None)
+
+    def nextFIX(self):
+        eof = False
+        while not eof:
+            eof, fix = self.parseLine()
+            if fix:
+                return fix;
+        return None
+
+    def openFile(self, fname):
+        self.file = open(fname, "r")
+        if self.file == None:
+            return False
+        return True
+
+    def loadFile(self):
+        while True:
+            fix = self.nextFIX()
+            if fix == None:
+                return
+            if fix.send:
+                self.send.append(fix)
+            else:
+                self.recv.append(fix)
+
+
+# find and spit out all pairs of executionreports and the send/recv logs
+def order_history():
+    parser = argparse.ArgumentParser(usage="""oclog order-history --oclog --srlog [--order-id oid | --account-id aid | --user uid] """)
+    parser.add_argument("-l","--oclog", type=str, help="The OC logfile")
+    parser.add_argument("-r","--srlog", type=str, help="The send/recv log")
+    parser.add_argument("-o","--order-id", type=str, help="The order id")
+    parser.add_argument("-a","--account-id", type=str, help="The account id")
+    parser.add_argument("-u","--user-id", type=str, help="The user id")
+    args = parser.parse_args()
+
+    searchValue = args.order_id
+    field = "order_id"
+    if searchValue == None:
+        searchValue = args.account_id
+        field = "account_id"
+    if searchValue == None:
+        searchValue = args.user_id
+        field = "user_id"
+    if searchValue == None:
+        print "--order-id, --userid or account-id must be specified"
+        parser.print_help()
+        return
+    oclog = args.oclog
+    if oclog == "" or oclog == None:
+        parser.print_help()
+        return
+    srlog = args.srlog
+    if srlog == "" or srlog == None:
+        parser.print_help()
+        return
+
+    fixlog = FixLog()
+    if fixlog.openFile(srlog) == False:
+        print "Unable to open " + srlog
+        return
+    fixlog.loadFile()
+
+    reports = ExecutionReports()
+    if reports.openFile(oclog) == False:
+        print "Cannot open " + oclog
+        return
+
     while True:
-        tag = collectUntil('=')
-        getc()
-        #print ">'{0}'".format(w)
-        if tag == "" or tag == None or tag == '\n':
-            break
-        output(ToTag(tag))
-        output(' = ')
-        w = collectUntil(['\001'])
-        if tag == '35':
-            output(ToMsg(w))
-        elif tag == '39':
-            output(ToOrdStatus(w))
-        elif tag == '40':
-            output(ToOrdType(w))
-        elif tag == '54':
-            output(ToSide(w))
-        elif tag == '150':
-            output(ToExecType(w))
-        else:
-            output(w);
-        getc();
-        output('\n')
+        er = reports.nextER()
+        if er == None:
+            return
+        value = er.getValue(field)
+        if value == searchValue:
+            fix = fixlog.sendFindFirst("11", er.getValue("secondary_cl_ord_id"))
+            if fix:
+                print "{0}: {1}".format(fix.lineno, fix.raw)
+            fix = fixlog.recvFindFirst("11", er.getValue("secondary_cl_ord_id"))
+            if fix:
+                print "{0}: {1}".format(fix.lineno, fix.raw)
+            print "{0}: {1}".format(er.lineno, er.raw)
+            print "------------------------------------------------------------------"
+
+
+def printErs():
+    ers = ExecutionReports()
+    ers.readfile("OC_cme.log")
+    lst = ers.findAll("order_id", "7764dac0-cad4-4c2b-92c2-46a74319ebb8")
+    for er in lst:
+        print er.raw
+
+def printFix():
+    fixlog = FixLog()
+    fixlog.readfile("W74004_CME_send_recv.log")
+    fix = fixlog.sendFindFirst("11", "1512099976")
+    print fix.raw
+
+def usage():
+    print "usage: oclog order-history  [--help] options..."
+    print "            For a given order id, match send/recv log with execution reports"
+    print
 
 if __name__ == "__main__":
-    fixfmt()
+    if len(sys.argv) == 1:
+        usage()
+        exit(1)
+    if sys.argv[1] == 'order-history':
+        del sys.argv[1]
+        order_history()
+    elif sys.argv[1] == 'print-fix':
+        del sys.argv[1]
+        printFix()
+    else:
+        usage()
+        exit(1)

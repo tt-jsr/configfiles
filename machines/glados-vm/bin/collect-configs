@@ -1,0 +1,10 @@
+
+knife=~/.chef/knife.rb
+
+env=int-dev-cert
+
+ips=`./run ./ttknife --config $knife search node "chef_environment:$env AND deployed_cookbooks:order_connector" | grep IP | sed 's/IP:[ \t]*\([0-9.]*\)/\1/'`
+for ip in $ips;
+do 
+    scp jrichards@${ip}:/etc/debesys/*oc_config.conf /home/jeff/projects/debesys/orders/config
+done

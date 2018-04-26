@@ -1,0 +1,24 @@
+#!/bin/bash
+
+BINDIR=/opt/debesys/cme/bin
+LIBDIR=/opt/debesys/cme/lib
+
+if ! [[ -f ${BINDIR}/cme.orig ]]
+then
+    echo "Creating .orig files"
+    mv  ${BINDIR}/cme ${BINDIR}/cme.orig
+    mv  ${LIBDIR}/liball_messages.so ${LIBDIR}/liball_messages.so.orig
+else
+    echo ".orig files already exist"
+fi
+
+cp /tmp/jeff-oneoff/bin/* ${BINDIR}
+cp /tmp/jeff-oneoff/lib/* ${LIBDIR}
+
+echo -n "Install cme-perf (y/n)? "
+read yno
+if [[ $yno == "y" ]]
+then
+    cp $BINDIR/cme-perf $BINDIR/cme
+fi
+

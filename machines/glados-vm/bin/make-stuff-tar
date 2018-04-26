@@ -1,5 +1,6 @@
 cp ~/.vimrc .
 cp ~/.tmux.conf .
-tar cvf stuff.tar .tmux.conf .vimrc mysudo pfmt fixfmt profile filterlog.py
+cd /home/jeff/bin
+tar cvf stuff.tar .tmux.conf .vimrc mysudo pfmt fixfmt jsonfmt profile logclean oclog erformat octimes.py octimes.sh logtimes
 rm .vimrc
 rm .tmux.conf

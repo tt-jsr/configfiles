@@ -1,0 +1,305 @@
+#!/usr/bin/env python
+
+import sys
+import time
+import string
+
+# ExecutionReport exec_type=EXEC_TYPE_TRADE
+er_trade = """-> {exec_type} | {ord_status} | {order_id} | {ord_type}
+-> order_qty={order_qty} | cqty={cum_qty} | lqty={leaves_qty} | dqty={delta_qty}
+-> acct={account_id} | inst={instrument_id} | {security_desc}
+-> ts={time_sent} | tt={transact_time}
+-> inbound={inbound}us
+-> {crossing_order_prevention_action_type}
+"""
+
+# ExecutionReport exec_type=EXEC_TYPE_REJECT
+er_reject = """-> {exec_type} | {ord_status} | {order_id} | {ord_type} | text={text}
+-> acct={account_id} | inst={instrument_id} | {security_desc}
+-> ts={time_sent} tt={transact_time}
+"""
+
+# All other ExecutionReports
+er_default = """-> {exec_type} | {ord_status} | {order_id} | {ord_type}
+-> prc={price} | qty={order_qty} | {side}
+-> acct={account_id} | inst={instrument_id} | {security_desc}
+-> ts={time_sent} tt={transact_time}
+-> inbound={inbound}us outbound={outbound}us
+-> {crossing_order_prevention_action_type}
+"""
+
+
+# OrderCancelReject messages
+cxl_rej_default = """-> CXL_REJ {order_id} | text={text}
+"""
+
+""" List of ER fields
+exec_type
+ord_status
+order_id
+ord_type
+side
+price
+account_id
+instrument_id
+secondary_cl_ord_id
+secondary_order_id
+sender_sub_id
+cl_ord_id
+account
+transact_time
+order_qty
+leaves_qty
+cum_qty
+position_effect
+manual_order_indicato
+cust_order_capacity
+order_capacity
+time_sent
+secondary_order_id
+secondary_cl_ord_id
+security_desc
+user_id
+connection_id
+order_sequence
+exch_order_assoc
+source
+correlation_cl_ord_id
+curr_user_id
+time_in_force
+order_received_oc
+time_sent_exchange
+market_id
+synthetic_type
+exch_order_qty
+exch_leaves_qty
+exch_cum_qty
+exec_inst
+contingency_type
+order_properties
+client_time_sent
+broker_id
+sender_location_id
+calculate_epiq
+externally_created
+fix_cl_ord_id
+fix_orig_cl_ord_id
+crossing_order_prevention_action_type
+
+OrderCancelReject fields
+
+ord_status
+order_id
+account_id
+instrument_id
+ord_type
+side
+secondary_cl_ord_id
+secondary_order_id
+sender_sub_id
+secondary_order_id
+secondary_cl_ord_id
+cl_ord_id
+account
+transact_time
+cxl_rej_response_to
+cxl_rej_reason
+text
+manual_order_indicator
+user_id
+connection_id
+time_sent
+source
+security_desc
+curr_user_id
+reject_source
+received_from_exchange
+order_received_oc
+time_sent_exchange
+market_id
+exch_order_assoc
+time_in_force
+rejected_order_sequence
+sender_location_id
+synthetic_type
+queued_order
+fix_cl_ord_id
+fix_orig_cl_ord_id
+
+"""
+
+
+class Formatter():
+    def __init__(self, d):
+        self.dict = d
+
+    def GetValue(self, k):
+        try:
+            return self.dict[k]
+        except:
+            return ""
+
+    def IsValue(self, k, v):
+        try:
+            return self.dict[k] == v
+        except:
+            return False
+
+    def inboundTime(self):
+        time_sent = self.dict['time_sent']
+        received_from_exchange = self.dict['received_from_exchange']
+        return float(int(time_sent) - int(received_from_exchange))/1000.0
+
+    def outboundTime(self):
+        order_received_oc = self.dict['order_received_oc']
+        time_sent_exchange = self.dict['time_sent_exchange']
+        return float(int(time_sent_exchange) - int(order_received_oc))/1000.0
+
+    def format(self, fmt):
+        formatter = string.Formatter()
+        s = ""
+        for it in formatter.parse(fmt):
+            text = it[0]
+            field = it[1]
+            replacement_data = None
+            if field == None:
+                replacement_data = ""
+            else:
+                try:
+                    if field == 'inbound':
+                        t = self.inboundTime()
+                        replacement_data = "{0}".format(t)
+                    elif field == 'outbound':
+                        t = self.outboundTime()
+                        replacement_data = "{0}".format(t)
+                    elif field == 'time_sent':
+                        t = int(self.dict[field])/1000000000
+                        replacement_data = time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(t))
+                    elif field == 'transact_time':
+                        t = int(self.dict[field])/1000000000
+                        replacement_data = time.strftime("%m/%d/%Y %H:%M:%S", time.gmtime(t))
+                    else:
+                        replacement_data = self.dict[field]
+                except Exception as e:
+                    #print e
+                    replacement_data = None
+
+            if replacement_data == None:
+                replacement_data = "{{{0}}}".format(field)
+            s = "{0}{1}{2}".format(s, text, replacement_data)
+
+        return s
+
+class ParseContext(object):
+    def __init__(self, line):
+        self.line = line
+        self.idx = 0
+
+    def getc(self):
+        if self.idx >= len(self.line):
+            return None
+        r = self.line[self.idx]
+        self.idx += 1
+        return r
+
+    def ungetc(self):
+        self.idx -= 1
+
+def skipWhile(ctx, list):
+    while True:
+        c = ctx.getc()
+        if c == None:
+            return
+
+        if c in list:
+            pass
+        else:
+            ctx.ungetc()
+            return
+
+def collectUntil(ctx, list):
+    s = ""
+    while True:
+        c = ctx.getc()
+        if c == None:
+            return (s, True)
+
+        if c in list:
+            ctx.ungetc()
+            return (s, False)
+        if c == '"':
+            s += '"'
+            tmp, eof = collectUntil(ctx, '"')
+            s += tmp
+            if eof:
+                return (s, True)
+            s += ctx.getc()
+        else:
+            s += c
+
+def collectWord(ctx):
+    skipWhile(ctx, ' ')
+    return collectUntil(ctx, " ")
+
+def collectWords(line):
+    ctx = ParseContext(line)
+    words = []
+    while True:
+        w, eof = collectWord(ctx)
+        words.append(w)
+        if eof == True:
+            return words
+    return words
+
+def buildDict(line):
+    fields = {}
+    words = collectWords(line)
+    for w in words:
+        kv = w.split('=', 1)
+        if len(kv) == 2:
+            fields[kv[0]] = kv[1]
+    return fields
+
+def processER(line):
+    fields = buildDict(line)
+
+    fmt = Formatter(fields)
+
+    if fmt.IsValue("exec_type", "EXEC_TYPE_TRADE"):
+        return fmt.format(er_trade)
+
+    elif fmt.IsValue("exec_type", "EXEC_TYPE_REJECTED"):
+        return fmt.format(er_reject)
+    else:
+        return fmt.format(er_default)
+
+def processOCR(line):
+    fields = buildDict(line)
+
+    fmt = Formatter(fields)
+
+    return fmt.format(cxl_rej_default)
+
+def main():
+    lineno = 0
+    while True:
+        line = sys.stdin.readline()
+        lineno += 1
+        sys.stderr.write("{0}\r".format(lineno))
+        if line == None or line == '':
+            break
+        if line.find("ExecutionReport") > 0:
+            sys.stdout.write('\n')
+            sys.stdout.write(processER(line))
+            sys.stdout.write(line)
+            sys.stdout.write('\n')
+        elif line.find("OrderCancelReject") > 0:
+            sys.stdout.write('\n')
+            sys.stdout.write(processOCR(line))
+            sys.stdout.write(line)
+            sys.stdout.write('\n')
+        else:
+            sys.stdout.write(line)
+
+if __name__ == "__main__":
+    main()
